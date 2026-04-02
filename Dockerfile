@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements and install
 COPY requirements.txt .
+
+# Install Torch CPU-only specifically to save space/RAM during build
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary application directories
@@ -21,13 +24,6 @@ RUN mkdir -p /app/models /app/data/originals /app/data/queries /app/db
 
 # Copy the entire workspace into the container
 COPY . .
-
-# Ensure the setup scripts are run during the Docker image build phase
-# 1. Download PyTorch models and generate synthetic base images
-RUN python scripts/setup_ml_environment.py
-
-# 2. Build the FAISS database and populate SQLite with testing variants
-RUN python scripts/build_test_dataset.py
 
 # Hugging Face Spaces exposes port 7860 by default
 EXPOSE 7860

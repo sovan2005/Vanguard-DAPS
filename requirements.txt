@@ -5,13 +5,10 @@ python-multipart==0.0.9
 openai>=1.0.0
 requests>=2.31.0
 
-# Deep Learning / ML Dependencies
-torch
-torchvision
+# ML Dependencies (Torch is handled in Dockerfile for CPU-only)
 faiss-cpu
 imagehash
 Pillow
 sqlalchemy
-opencv-python-headless
 numpy
 scipy

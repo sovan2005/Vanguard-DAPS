@@ -26,6 +26,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+import subprocess
+from pathlib import Path
 
 from models import DAPSAction, DAPSObservation, DAPSState, DAPSStepResult
 from environment import DAPSEnvironment
@@ -62,6 +64,31 @@ env = DAPSEnvironment()
 # Metrics tracking across episodes
 _episode_history: list[dict] = []
 _start_time = time.time()
+
+
+# ─────────────────────────────────────────────
+# Startup: Setup ML environment (Model download + Dataset build)
+# ─────────────────────────────────────────────
+
+@app.on_event("startup")
+async def startup_event():
+    """Ensure ML models and dataset are ready before first request."""
+    print("DAPSEnv starting up...")
+    base = Path(__file__).parent
+    model_path = base / "models" / "sscd_disc_mixup.torchscript.pt"
+    db_path = base / "daps.db"
+
+    # 1. Check if model exists, if not run setup
+    if not model_path.exists() or model_path.stat().st_size < 80000000:
+        print("SSCD Model missing or incomplete. Running setup script...")
+        subprocess.run([sys.executable, "scripts/setup_ml_environment.py"], check=True)
+
+    # 2. Check if dataset exists, if not run build
+    if not db_path.exists() or db_path.stat().st_size < 1000:
+        print("DAPS Database missing or empty. Running dataset build...")
+        subprocess.run([sys.executable, "scripts/build_test_dataset.py"], check=True)
+
+    print("DAPSEnv is fully initialized and ready.")
 
 
 # ─────────────────────────────────────────────
