@@ -36,9 +36,14 @@
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
-            overflow-y: auto; /* ENABLE GLOBAL SCROLL FOR ZOOM */
+            overflow-y: auto;
             position: relative;
-            cursor: auto; /* BETTER CURSOR */
+            cursor: auto;
+            zoom: 0.9; /* 🎯 SCALE DOWN FOR 100% ZOOM COMFORT */
+            transform: scale(0.9);
+            transform-origin: 0 0;
+            -moz-transform: scale(0.9); /* Firefox support */
+            -moz-transform-origin: 0 0;
         }
 
         /* 🛡️ ELITE HERO BACKGROUND - V2 CYBER SHIELD */
@@ -46,12 +51,12 @@
             content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('cyber_shield_bg_v2_1775156913310.png');
+            background-image: url('/static/cyber_shield_bg_v2.jpg');
             background-size: cover;
             background-position: center;
-            opacity: 0.18; /* Tactical visibility */
+            opacity: 0.35; /* ENHANCED VISIBILITY */
             z-index: -1;
-            filter: brightness(0.7);
+            filter: brightness(0.6);
             pointer-events: none;
         }
 
