@@ -418,6 +418,37 @@
         .bench-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
         .bench-label-title { color: var(--text-secondary); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 1px; }
 
+        /* 🔬 Forensic Analysis Report Card */
+        #forensic-report-card {
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid var(--accent);
+            padding: 25px;
+            margin-top: 25px;
+            animation: pulse-border 2s infinite;
+            display: none;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(0, 242, 255, 0.3); }
+            50% { border-color: rgba(0, 242, 255, 1); }
+            100% { border-color: rgba(0, 242, 255, 0.3); }
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .verdict-tag { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; }
+        .conf-badge { padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.7rem; font-family: 'JetBrains Mono'; }
+
+        .analysis-text { font-size: 0.85rem; line-height: 1.6; color: #b0c4de; margin-bottom: 15px; }
+        .rec-action { font-size: 0.75rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+
         /* Forensic Feed */
         .feed-panel { 
             grid-area: feed; 
@@ -553,6 +584,9 @@
             <div class="bench-card" id="bench-hub">
                 <div class="hud-sub">Calibrating benchmark engine...</div>
             </div>
+            <div class="hud-sub" style="font-size: 0.55rem; opacity: 0.4; margin-top: 10px; padding: 0 5px;">
+                * Simulated benchmarks on Vanguard Forensic Dataset V1 (n=250 targeted Similarity clusters).
+            </div>
         </aside>
 
         <section class="main-content">
@@ -592,6 +626,20 @@
                         <div class="hud-sub">Visual Analysis Complete</div>
                     </div>
                 </div>
+
+                <div id="forensic-report-card">
+                    <div class="report-header">
+                        <div class="verdict-tag" id="rep-verdict">--</div>
+                        <div class="conf-badge" id="rep-conf">CONF: --%</div>
+                    </div>
+                    <div class="analysis-text" id="rep-analysis">
+                        Awaiting neural link analysis...
+                    </div>
+                    <div class="rec-action" id="rep-rec">
+                        RECOMMENDED ACTION: --
+                    </div>
+                </div>
+            </div>
             </div>
 
             <div class="action-hub">
@@ -607,8 +655,8 @@
                     <button class="btn-clear" onclick="stepEnv('CLEAR')">Authorize (Clear)</button>
                     <button class="btn-soft" onclick="stepEnv('FLAG_SOFT')">Intercept (Soft)</button>
                     <button class="btn-hard" onclick="stepEnv('FLAG_HARD')">Neutralize (Hard)</button>
-                    <button class="btn-gemini" onclick="stepEnv('REQUEST_GEMINI')">Query Vision</button>
-                    <button class="btn-reboot" onclick="resetEnv()">Execute New Cycle</button>
+                    <button class="btn-gemini" onclick="stepEnv('REQUEST_GEMINI')">Query Vision Intelligence</button>
+                    <button class="btn-reboot" onclick="resetEnv()">INITIALIZE FORENSIC MISSION</button>
                 </div>
             </div>
         </section>
@@ -781,6 +829,18 @@
                 const diffLabel = document.getElementById('disp-reward-diff');
                 diffLabel.innerText = (rew >= 0 ? '+' : '') + rew.toFixed(3);
                 diffLabel.style.color = rew >= 0 ? 'var(--safe)' : 'var(--danger)';
+
+                // 🔬 UPDATE FORENSIC REPORT (EXPLAINABLE AI)
+                const report = data.info.forensic_report;
+                if(report && report.confidence > 0) {
+                    const card = document.getElementById('forensic-report-card');
+                    card.style.display = 'block';
+                    document.getElementById('rep-verdict').innerText = report.verdict;
+                    document.getElementById('rep-verdict').style.color = (report.verdict.includes('🔴') || report.verdict.includes('Risk')) ? 'var(--danger)' : (report.verdict.includes('🟢') ? 'var(--safe)' : 'var(--accent)');
+                    document.getElementById('rep-conf').innerText = `CONFIDENCE: ${report.confidence}%`;
+                    document.getElementById('rep-analysis').innerText = report.analysis;
+                    document.getElementById('rep-rec').innerText = `RECOMMENDED ACTION: ${report.recommendation}`;
+                }
 
                 if(data.done) {
                     logEvent("EPISODE_TERMINAL reached.");

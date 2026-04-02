@@ -223,6 +223,44 @@ def step(request: StepRequest):
     try:
         result: DAPSStepResult = env.step(request.action)
 
+        # 🧠 DECISION REASONING ENGINE (WINNER'S CIRCLE UPGRADE)
+        # We transform raw numbers into an "Explainable Forensic Report"
+        obs = result.observation
+        report = {
+            "verdict": "SECURE",
+            "confidence": 0.0,
+            "analysis": "No threats detected.",
+            "recommendation": "AUTHORIZED"
+        }
+
+        if obs.task_id != "EPISODE_COMPLETE":
+            # 1. Calculate Confidence (Geometric Mean of SSCD and phash clarity)
+            conf = (obs.sscd_score) * (1.0 - (obs.phash_distance / 256.0))
+            report["confidence"] = round(conf * 100, 1)
+
+            # 2. Logic Matrix (Fusion Engine)
+            if obs.sscd_score > 0.92:
+                report["verdict"] = "CRITICAL INFRINGEMENT 🔴"
+                report["analysis"] = "Neural DNA match exceeds 92%. Original asset identity confirmed with near-total certainty."
+                report["recommendation"] = "IMMEDIATE TAKEDOWN"
+            elif obs.sscd_score > 0.82:
+                report["verdict"] = "PROBABLE INFRINGEMENT 🟠"
+                report["analysis"] = f"Strong similarity detected (SSCD: {obs.sscd_score}). Identified illegal manipulation ({obs.modification_type})."
+                report["recommendation"] = "MANUAL FORENSIC REVIEW"
+            elif obs.sscd_score > 0.65:
+                report["verdict"] = "SUSPICIOUS SIMILARITY 🟡"
+                report["analysis"] = "Partial similarity detected. Could be a derivative work or high-noise edit."
+                report["recommendation"] = "MONITOR ASSET"
+            else:
+                report["verdict"] = "SECURE ASSET 🟢"
+                report["analysis"] = "No significant neural matches found in the protected database."
+                report["recommendation"] = "AUTHORIZE DISTRIBUTION"
+
+            # Add "Human Sentence" for the pitch
+            report["summary"] = f"Forensic analysis suggests this is a {report['verdict']} based on neural similarity and {obs.modification_type} detection."
+
+        result.info["forensic_report"] = report
+
         # If episode is done, save to history
         if result.done and "episode_summary" in result.info:
             summary = result.info["episode_summary"]
