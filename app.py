@@ -1,0 +1,430 @@
+"""
+DAPSEnv — Digital Asset Protection System
+app.py: FastAPI server wrapping the environment
+
+This is the HTTP interface. When deployed to HF Spaces, judges/validators
+call these endpoints to interact with the environment.
+
+Endpoints:
+  POST /reset        → start new episode, returns first observation
+  POST /step         → submit an action, get reward + next observation
+  GET  /state        → inspect current episode state
+  GET  /health       → liveness probe (required for HF Spaces auto-check)
+  GET  /tasks        → list available task difficulties (spec compliance)
+  GET  /metrics      → episode performance analytics
+  GET  /info         → environment description + capabilities
+"""
+
+import sys
+import os
+import time
+
+# Ensure local imports work in the container
+sys.path.insert(0, os.path.dirname(__file__))
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
+
+from models import DAPSAction, DAPSObservation, DAPSState, DAPSStepResult
+from environment import DAPSEnvironment
+
+
+# ─────────────────────────────────────────────
+# App setup
+# ─────────────────────────────────────────────
+
+app = FastAPI(
+    title="DAPSEnv — Digital Asset Protection System",
+    description=(
+        "An OpenEnv-compliant RL environment where an AI agent acts as a "
+        "copyright infringement investigator. The agent evaluates media assets "
+        "using SSCD similarity signals, perceptual hash, forensic metadata, "
+        "and modification fingerprints — deciding to Clear, Soft-Flag, Hard-Flag, "
+        "or invoke Gemini Vision for deeper analysis. Features 9 unique task "
+        "variants across 3 difficulty levels including adversarial decoys and "
+        "AI-generated lookalikes."
+    ),
+    version="2.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Single environment instance (concurrent sessions disabled for hackathon)
+env = DAPSEnvironment()
+
+# Metrics tracking across episodes
+_episode_history: list[dict] = []
+_start_time = time.time()
+
+
+# ─────────────────────────────────────────────
+# Request / Response models for the HTTP layer
+# ─────────────────────────────────────────────
+
+class ResetRequest(BaseModel):
+    seed: Optional[int] = None
+    difficulty: Optional[str] = None   # "easy" | "medium" | "hard" | None (mixed)
+
+
+class ResetResponse(BaseModel):
+    observation: DAPSObservation
+    message: str = "Episode started. Call POST /step with your action."
+
+
+class StepRequest(BaseModel):
+    action: DAPSAction
+
+
+class StepResponse(BaseModel):
+    observation: DAPSObservation
+    reward: float
+    done: bool
+    info: dict
+
+
+class HealthResponse(BaseModel):
+    status: str
+    environment: str
+    version: str
+
+
+class TasksResponse(BaseModel):
+    tasks: list[dict]
+
+
+class InfoResponse(BaseModel):
+    name: str
+    description: str
+    version: str
+    task_count: int
+    action_space: list[str]
+    observation_fields: list[str]
+    reward_range: list[float]
+    difficulty_levels: list[str]
+    unique_features: list[str]
+
+
+class MetricsResponse(BaseModel):
+    total_episodes: int
+    uptime_seconds: float
+    avg_reward: float
+    avg_accuracy: float
+    avg_gemini_calls: float
+    best_reward: float
+    best_grade: str
+    episode_history: list[dict]
+
+
+# ─────────────────────────────────────────────
+# Endpoints
+# ─────────────────────────────────────────────
+
+@app.get("/health", response_model=HealthResponse)
+def health():
+    """Liveness probe. HF Spaces validator pings this."""
+    return HealthResponse(
+        status="ok",
+        environment="DAPSEnv",
+        version="2.0.0",
+    )
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "static", "index.html"), "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "<h1>Welcome to DAPSEnv</h1><p>index.html not found.</p>"
+
+@app.post("/reset", response_model=ResetResponse)
+def reset(request: ResetRequest = ResetRequest()):
+    """
+    Start a new episode.
+
+    Returns the first asset observation the agent must evaluate.
+    Call this before the first step, and between episodes.
+
+    Example:
+        POST /reset
+        {}
+
+    Or with a fixed seed for reproducibility:
+        {"seed": 42}
+    """
+    try:
+        obs = env.reset(seed=request.seed, difficulty=request.difficulty)
+        return ResetResponse(observation=obs)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/step", response_model=StepResponse)
+def step(request: StepRequest):
+    """
+    Submit an agent action and receive reward + next observation.
+
+    Action types:
+      - CLEAR          → asset is original (no infringement)
+      - FLAG_SOFT      → suspected copy, send to human review
+      - FLAG_HARD      → confirmed infringement, block immediately
+      - REQUEST_GEMINI → invoke Gemini Vision for deeper analysis (-0.1 cost)
+
+    Note: REQUEST_GEMINI does NOT advance to the next task.
+    It enriches the current observation with gemini_verdict and gemini_similarity,
+    then you must submit a terminal action (CLEAR/FLAG_SOFT/FLAG_HARD).
+
+    Confidence matters: high confidence on correct = bonus, high confidence on wrong = penalty.
+
+    Example:
+        POST /step
+        {"action": {"action_type": "FLAG_HARD", "confidence": 0.95}}
+    """
+    try:
+        result: DAPSStepResult = env.step(request.action)
+
+        # If episode is done, save to history
+        if result.done and "episode_summary" in result.info:
+            summary = result.info["episode_summary"]
+            _episode_history.append(summary)
+
+        return StepResponse(
+            observation=result.observation,
+            reward=result.reward,
+            done=result.done,
+            info=result.info,
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/state", response_model=DAPSState)
+def state():
+    """
+    Inspect current episode state.
+
+    Returns the full episode snapshot including:
+    - Current step, total reward, accuracy
+    - Decisions made so far
+    - Correct/incorrect decision counts
+    - Gemini calls used and efficiency
+    - Confidence calibration score
+
+    Example:
+        GET /state
+    """
+    try:
+        return env.state()
+    except RuntimeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/tasks", response_model=TasksResponse)
+def list_tasks():
+    """
+    List available task types (OpenEnv spec: enumerate tasks).
+
+    DAPSEnv has 9 unique task variants across 3 difficulty levels.
+    Each task has a grader that returns scores in [0.0, 1.0].
+    """
+    return TasksResponse(tasks=[
+        {
+            "task_id": "easy_exact_copy",
+            "name": "Exact Copy Detection",
+            "description": (
+                "Near-exact copy with minimal modification. "
+                "SSCD > 0.92, pHash < 5. Signals clearly indicate infringement. "
+                "Expected action: FLAG_HARD."
+            ),
+            "difficulty": "easy",
+            "reward_range": [0.0, 1.15],
+            "grader": "grade_easy_task",
+        },
+        {
+            "task_id": "easy_recompressed",
+            "name": "Recompressed Copy Detection",
+            "description": (
+                "Same content re-encoded with quality loss (screenshot, re-upload). "
+                "SSCD > 0.90, pHash < 6. Expected action: FLAG_HARD."
+            ),
+            "difficulty": "easy",
+            "reward_range": [0.0, 1.15],
+            "grader": "grade_easy_task",
+        },
+        {
+            "task_id": "easy_cropped",
+            "name": "Cropped Copy Detection",
+            "description": (
+                "Cropped version of original. SSCD > 0.88, pHash < 8. "
+                "Still clearly a copy. Expected action: FLAG_HARD."
+            ),
+            "difficulty": "easy",
+            "reward_range": [0.0, 1.15],
+            "grader": "grade_easy_task",
+        },
+        {
+            "task_id": "medium_filtered",
+            "name": "Filtered Asset Detection",
+            "description": (
+                "Color/style filter applied. SSCD 0.65-0.85, pHash 8-20. "
+                "Agent must weigh both signals. Expected action: FLAG_SOFT."
+            ),
+            "difficulty": "medium",
+            "reward_range": [0.0, 1.38],
+            "grader": "grade_medium_task",
+        },
+        {
+            "task_id": "medium_watermarked",
+            "name": "Watermark Detection",
+            "description": (
+                "Watermark added or removed. Perceptual hash shifts but "
+                "deep embedding still recognizable. Expected action: FLAG_SOFT."
+            ),
+            "difficulty": "medium",
+            "reward_range": [0.0, 1.38],
+            "grader": "grade_medium_task",
+        },
+        {
+            "task_id": "medium_metadata_mismatch",
+            "name": "Metadata Anomaly Detection",
+            "description": (
+                "Color-graded asset with suspicious metadata. Low consistency, "
+                "suspicious source. Agent must use forensic signals. "
+                "Expected action: FLAG_SOFT."
+            ),
+            "difficulty": "medium",
+            "reward_range": [0.0, 1.38],
+            "grader": "grade_medium_task",
+        },
+        {
+            "task_id": "hard_ambiguous",
+            "name": "Ambiguous Asset Classification",
+            "description": (
+                "Conflicting signals. Could be CLEAR or FLAG_HARD. "
+                "Optimal: call REQUEST_GEMINI first, then decide."
+            ),
+            "difficulty": "hard",
+            "reward_range": [-0.1, 1.65],
+            "grader": "grade_hard_task",
+        },
+        {
+            "task_id": "hard_adversarial_decoy",
+            "name": "Adversarial Decoy (Agent-Under-Attack)",
+            "description": (
+                "Signals LOOK like infringement but asset is original. "
+                "Tests false positive control. Verified source, consistent metadata, "
+                "uploaded BEFORE reference. Expected action: CLEAR."
+            ),
+            "difficulty": "hard",
+            "reward_range": [-0.45, 1.65],
+            "grader": "grade_hard_task",
+        },
+        {
+            "task_id": "hard_ai_generated",
+            "name": "AI-Generated Lookalike Detection",
+            "description": (
+                "AI-generated content that looks similar to original. "
+                "SSCD picks up style similarity, pHash diverges. "
+                "Cutting-edge scenario. Expected action: FLAG_SOFT."
+            ),
+            "difficulty": "hard",
+            "reward_range": [-0.1, 1.65],
+            "grader": "grade_hard_task",
+        },
+    ])
+
+
+@app.get("/info", response_model=InfoResponse)
+def info():
+    """
+    Environment description and capabilities.
+    Used for auto-discovery by evaluation tools and judges.
+    """
+    return InfoResponse(
+        name="DAPSEnv — Digital Asset Protection System",
+        description=(
+            "AI agent acts as a copyright investigator, evaluating media assets "
+            "across 9 unique scenarios using SSCD similarity, perceptual hash, "
+            "and forensic metadata signals. Features adversarial decoys and "
+            "AI-generated lookalike detection."
+        ),
+        version="2.0.0",
+        task_count=9,
+        action_space=["CLEAR", "FLAG_SOFT", "FLAG_HARD", "REQUEST_GEMINI"],
+        observation_fields=[
+            "sscd_score", "phash_distance", "modification_type",
+            "modification_confidence", "source_domain", "file_size_ratio",
+            "upload_delay_hours", "metadata_consistency", "timestamp_anomaly",
+            "source_reputation", "gemini_verdict", "gemini_similarity",
+            "task_id", "step_in_episode", "difficulty", "threat_level",
+        ],
+        reward_range=[-1.15, 1.65],
+        difficulty_levels=["easy", "medium", "hard"],
+        unique_features=[
+            "Confidence-weighted reward shaping",
+            "Adversarial decoy tasks (tests false positive control)",
+            "AI-generated lookalike detection",
+            "Forensic evidence packets per decision",
+            "Gemini Vision escalation mechanism",
+            "Episode-level performance grading (A+ through F)",
+            "Metadata forensics (timestamp anomaly, source reputation)",
+        ],
+    )
+
+
+@app.get("/metrics", response_model=MetricsResponse)
+def metrics():
+    """
+    Performance analytics across all episodes.
+    Returns aggregate statistics and per-episode history.
+    """
+    uptime = time.time() - _start_time
+    total = len(_episode_history)
+
+    if total == 0:
+        return MetricsResponse(
+            total_episodes=0,
+            uptime_seconds=round(uptime, 1),
+            avg_reward=0.0,
+            avg_accuracy=0.0,
+            avg_gemini_calls=0.0,
+            best_reward=0.0,
+            best_grade="N/A",
+            episode_history=[],
+        )
+
+    avg_reward = sum(e.get("total_reward", 0) for e in _episode_history) / total
+    avg_accuracy = sum(e.get("accuracy", 0) for e in _episode_history) / total
+    avg_gemini = sum(e.get("gemini_calls", 0) for e in _episode_history) / total
+    best = max(_episode_history, key=lambda e: e.get("total_reward", 0))
+
+    return MetricsResponse(
+        total_episodes=total,
+        uptime_seconds=round(uptime, 1),
+        avg_reward=round(avg_reward, 3),
+        avg_accuracy=round(avg_accuracy, 3),
+        avg_gemini_calls=round(avg_gemini, 1),
+        best_reward=best.get("total_reward", 0),
+        best_grade=best.get("performance_grade", "N/A"),
+        episode_history=_episode_history[-10:],  # Last 10 episodes
+    )
+
+
+# ─────────────────────────────────────────────
+# Entry point (for local testing)
+# ─────────────────────────────────────────────
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

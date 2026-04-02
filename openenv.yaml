@@ -1,0 +1,144 @@
+spec_version: 1
+
+name: daps-env
+display_name: "DAPSEnv — Digital Asset Protection System"
+description: >
+  An OpenEnv-compliant RL environment where an AI agent acts as a copyright
+  infringement investigator. The agent evaluates media assets using SSCD
+  similarity signals, perceptual hash, and forensic metadata — deciding to
+  Clear, Soft-Flag, Hard-Flag, or invoke Gemini Vision for deeper analysis.
+  Features 9 unique task variants across 3 difficulty levels, including
+  adversarial decoys and AI-generated lookalike detection.
+  Confidence-weighted reward shaping teaches calibrated decision-making.
+
+version: "2.0.0"
+author: "Sovan"
+license: "MIT"
+
+type: typed  # Uses typed Pydantic Action/Observation/State models
+
+runtime:
+  language: python
+  python_version: "3.11"
+
+app:
+  module: app
+  object: app
+  port: 7860
+
+endpoints:
+  reset:
+    method: POST
+    path: /reset
+    description: "Start a new episode. Returns first asset observation."
+  step:
+    method: POST
+    path: /step
+    description: "Submit an action. Returns reward, done flag, next observation, evidence packet."
+  state:
+    method: GET
+    path: /state
+    description: "Inspect current episode state snapshot with analytics."
+  health:
+    method: GET
+    path: /health
+    description: "Liveness probe."
+  tasks:
+    method: GET
+    path: /tasks
+    description: "List all 9 task variants and their graders."
+  info:
+    method: GET
+    path: /info
+    description: "Environment description and capabilities."
+  metrics:
+    method: GET
+    path: /metrics
+    description: "Performance analytics across episodes."
+
+tasks:
+  # ── Easy tasks ──
+  - id: easy_exact_copy
+    name: "Exact Copy Detection"
+    difficulty: easy
+    score_range: [0.0, 1.15]
+  - id: easy_recompressed
+    name: "Recompressed Copy Detection"
+    difficulty: easy
+    score_range: [0.0, 1.15]
+  - id: easy_cropped
+    name: "Cropped Copy Detection"
+    difficulty: easy
+    score_range: [0.0, 1.15]
+  # ── Medium tasks ──
+  - id: medium_filtered
+    name: "Filtered Asset Detection"
+    difficulty: medium
+    score_range: [0.0, 1.38]
+  - id: medium_watermarked
+    name: "Watermark Detection"
+    difficulty: medium
+    score_range: [0.0, 1.38]
+  - id: medium_metadata_mismatch
+    name: "Metadata Anomaly Detection"
+    difficulty: medium
+    score_range: [0.0, 1.38]
+  # ── Hard tasks ──
+  - id: hard_ambiguous
+    name: "Ambiguous Asset Classification"
+    difficulty: hard
+    score_range: [-0.1, 1.65]
+  - id: hard_adversarial_decoy
+    name: "Adversarial Decoy (Agent-Under-Attack)"
+    difficulty: hard
+    score_range: [-0.45, 1.65]
+  - id: hard_ai_generated
+    name: "AI-Generated Lookalike Detection"
+    difficulty: hard
+    score_range: [-0.1, 1.65]
+
+action_space:
+  type: categorical
+  values: [CLEAR, FLAG_SOFT, FLAG_HARD, REQUEST_GEMINI]
+
+observation_space:
+  # Core signals
+  sscd_score: {type: float, range: [0.0, 1.0]}
+  phash_distance: {type: int, range: [0, 64]}
+  modification_type: {type: categorical, values: [NONE, CROP, FILTER, WATERMARK, COMPOSITE, RECOMPRESSION, AI_GENERATED, UNKNOWN]}
+  modification_confidence: {type: float, range: [0.0, 1.0]}
+  # Context
+  source_domain: {type: string}
+  file_size_ratio: {type: float}
+  upload_delay_hours: {type: float}
+  # Forensic metadata
+  metadata_consistency: {type: float, range: [0.0, 1.0]}
+  timestamp_anomaly: {type: bool}
+  source_reputation: {type: float, range: [0.0, 1.0]}
+  threat_level: {type: categorical, values: [BENIGN, LOW, MEDIUM, HIGH, CRITICAL]}
+  # Gemini (optional)
+  gemini_verdict: {type: string, optional: true}
+  gemini_similarity: {type: float, range: [0.0, 1.0], optional: true}
+
+reward:
+  correct_flag_hard: +1.0
+  correct_flag_soft: +1.0
+  correct_clear: +1.0
+  partial_flag_mismatch: +0.5
+  false_positive: -0.3
+  false_negative: -1.0
+  request_gemini_cost: -0.1
+  confidence_bonus_max: +0.15
+  confidence_penalty_max: -0.15
+  episode_bonus_9_correct: +1.0
+  episode_bonus_8_correct: +0.5
+  difficulty_multiplier:
+    easy: 1.0
+    medium: 1.2
+    hard: 1.5
+
+environment:
+  max_steps_per_episode: 18
+  tasks_per_episode: 9
+  unique_task_variants: 9
+  supports_concurrent_sessions: false
