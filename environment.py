@@ -357,13 +357,31 @@ class DAPSEnvironment:
                 self._state.total_reward = round(self._state.total_reward + bonus, 3)
 
             avg_conf = sum(c for c, _ in self._confidence_history) / len(self._confidence_history) if self._confidence_history else 0.0
+            
+            # --- Professional Forensic Grading System ---
+            acc = self._state.accuracy
+            fn = self._state.false_negatives
+            rew = self._state.total_reward
+            cal = self._state.confidence_calibration
+            
+            if acc >= 1.0 and fn == 0 and rew >= 10.0: grade = "S (Elite)"
+            elif acc >= 0.95 and fn == 0: grade = "A+ (Expert)"
+            elif acc >= 0.88 and fn == 0: grade = "A (Pro)"
+            elif acc >= 0.78 and fn <= 1: grade = "B (Competent)"
+            elif acc >= 0.65 and fn <= 2: grade = "C (Junior)"
+            elif acc >= 0.50: grade = "D (Novice)"
+            else: grade = "F (Security Risk)"
+            
+            # Critical override: multiple false negatives always fail a professional system
+            if fn >= 3: grade = "F (Unsafe)"
+
             info["episode_summary"] = EpisodeSummary(
                 episode_id=self._state.episode_id, total_reward=self._state.total_reward, total_steps=self._state.current_step,
                 tasks_completed=self._total_terminal_actions, correct_decisions=self._state.correct_decisions,
                 false_positives=self._state.false_positives, false_negatives=self._state.false_negatives,
                 gemini_calls=self._state.gemini_calls_used, gemini_efficiency=self._state.gemini_efficiency,
                 accuracy=self._state.accuracy, avg_confidence=round(avg_conf, 3), reward_per_difficulty=self._reward_by_difficulty,
-                performance_grade="A+" if self._state.accuracy > 0.9 else "B" # simplified
+                performance_grade=grade
             ).model_dump()
             next_obs = self._current_obs.model_copy(update={"task_id": "EPISODE_COMPLETE"})
 
