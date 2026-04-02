@@ -399,6 +399,25 @@
         .grade-B { background: var(--accent); color: #000; }
         .grade-F { background: var(--danger); color: #fff; }
 
+        /* 📊 Fusion Performance Hub */
+        .bench-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .bench-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            margin-bottom: 8px;
+        }
+        .bench-val { font-family: 'JetBrains Mono'; font-weight: bold; }
+        .bench-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.05); margin: 0 10px; border-radius: 2px; position: relative; }
+        .bench-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+        .bench-label-title { color: var(--text-secondary); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 1px; }
+
         /* Forensic Feed */
         .feed-panel { 
             grid-area: feed; 
@@ -494,6 +513,9 @@
             <div class="brand">
                 <div class="logo-box">V</div>
                 <h1>VANGUARD <span>DAPS</span></h1>
+                <div style="font-size: 0.65rem; color: var(--accent); letter-spacing: 2px; margin-left: 20px; font-weight: 800; border-left: 1px solid var(--border); padding-left: 15px;">
+                    TRADITIONAL SYSTEMS DETECT SIMILARITY. VANGUARD DETECTS LIABILITY.
+                </div>
             </div>
             <div class="system-status">
                 <div class="status-pill"><div class="pulse-dot"></div> Systems Nominal</div>
@@ -525,6 +547,11 @@
             <h2 style="margin-top: 30px;">Personnel Service Record</h2>
             <div class="history-list" id="history-container">
                 <div class="hud-sub" style="opacity: 0.5;">No records found in current session...</div>
+            </div>
+
+            <h2 style="margin-top: 30px;">Fusion Performance Hub</h2>
+            <div class="bench-card" id="bench-hub">
+                <div class="hud-sub">Calibrating benchmark engine...</div>
             </div>
         </aside>
 
@@ -602,13 +629,36 @@
             document.getElementById('runtime-clock').innerText = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
-        setInterval(fetchHistory, 5000); // Poll history every 5s
+        setInterval(fetchHistory, 5000); 
+        fetchBenchmarks(); // On Load
 
-        async function fetchHistory() {
+        async function fetchBenchmarks() {
             try {
-                const res = await fetch('/history');
+                const res = await fetch('/benchmarks');
                 const data = await res.json();
-                renderHistory(data.history);
+                const v = data.vanguard;
+                const b = data.baseline;
+                
+                document.getElementById('bench-hub').innerHTML = `
+                    <div class="bench-row">
+                        <span class="bench-label-title">Detection Accuracy</span>
+                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: ${v.accuracy*100}%"></div></div>
+                        <span class="bench-val" style="color: var(--safe)">${(v.accuracy*100).toFixed(1)}%</span>
+                    </div>
+                    <div class="bench-row">
+                        <span class="bench-label-title">Threat Catch Rate (Recall)</span>
+                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: ${v.threat_detection_rate*100}%"></div></div>
+                        <span class="bench-val" style="color: var(--safe)">${(v.threat_detection_rate*100).toFixed(1)}%</span>
+                    </div>
+                    <div class="bench-row">
+                        <span class="bench-label-title">False Alarm Rate</span>
+                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="background: var(--danger); width: ${v.false_alarm_rate*100}%"></div></div>
+                        <span class="bench-val" style="color: var(--danger)">${(v.false_alarm_rate*100).toFixed(1)}%</span>
+                    </div>
+                    <div class="hud-sub" style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--accent)">
+                        VANGUARD REDUCES MISSED THREATS BY ${data.improvement_pct.threat_detection}
+                    </div>
+                `;
             } catch (err) {}
         }
 

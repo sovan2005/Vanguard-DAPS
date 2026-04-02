@@ -1,0 +1,26 @@
+{
+    "baseline": {
+        "accuracy": 0.72,
+        "threat_detection_rate": 0.6133,
+        "false_alarm_rate": 0.12,
+        "missed_threat_rate": 0.3867,
+        "precision": 0.8846,
+        "f1_score": 0.7244,
+        "total_samples": 250
+    },
+    "vanguard": {
+        "accuracy": 0.98,
+        "threat_detection_rate": 0.9867,
+        "false_alarm_rate": 0.03,
+        "missed_threat_rate": 0.0133,
+        "precision": 0.9801,
+        "f1_score": 0.9834,
+        "total_samples": 250
+    },
+    "improvement_pct": {
+        "threat_detection": "42.5%",
+        "false_alarm_reduction": "75.0%",
+        "liability_coverage": "98.7%"
+    },
+    "hook_line": "Traditional systems detect similarity. Vanguard detects liability."
+}

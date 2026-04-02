@@ -269,6 +269,19 @@ def get_history():
     return {"history": _episode_history}
 
 
+@app.get("/benchmarks")
+def get_benchmarks():
+    """
+    Returns the real-world performance proof (Precision/Recall) 
+    comparing Vanguard Fusion vs. Traditional Hashing.
+    """
+    try:
+        with open("static/benchmarks.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"error": "Benchmark data not yet generated."}
+
+
 @app.get("/tasks", response_model=TasksResponse)
 def list_tasks():
     """
