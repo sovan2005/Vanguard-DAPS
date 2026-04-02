@@ -35,21 +35,23 @@
             color: var(--text-primary);
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
-            overflow: hidden; /* Prevent overall page scroll */
+            overflow-x: hidden;
+            overflow-y: auto; /* ENABLE GLOBAL SCROLL FOR ZOOM */
             position: relative;
+            cursor: auto; /* BETTER CURSOR */
         }
 
-        /* 🖼️ High-Tech Background Image - CYBER GUARD */
+        /* 🛡️ ELITE HERO BACKGROUND - V2 CYBER SHIELD */
         body::before {
             content: "";
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('cyber_guard_bg_1775156518785.png');
+            background-image: url('cyber_shield_bg_v2_1775156913310.png');
             background-size: cover;
             background-position: center;
-            opacity: 0.15; /* Subtle background visibility */
+            opacity: 0.18; /* Tactical visibility */
             z-index: -1;
-            filter: grayscale(0.5) brightness(0.5);
+            filter: brightness(0.7);
             pointer-events: none;
         }
 
@@ -73,10 +75,10 @@
             grid-template-areas: 
                 "header header header"
                 "sidebar main feed";
-            grid-template-columns: 320px 1fr 340px;
+            grid-template-columns: 350px 1fr 380px;
             grid-template-rows: 80px 1fr;
-            height: 100vh;
-            gap: 1.5px; /* Minimalist spacer */
+            min-height: 100vh; /* FOR ZOOM SUPPORT */
+            gap: 1.5px;
             background: var(--border);
         }
 
@@ -148,14 +150,13 @@
         /* Sidebars & Panels */
         aside, .main-content {
             background: var(--bg-deep);
-            /* Soft glass transparency to show BG image */
-            background: rgba(5, 7, 10, 0.7); 
-            backdrop-filter: blur(8px);
+            background: rgba(5, 8, 10, 0.75); 
+            backdrop-filter: blur(12px);
             padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 25px;
-            height: 100%; /* Important for internal scroll */
+            /* REMOVE FIXED HEIGHT FOR ZOOM */
         }
 
         .main-content {
@@ -233,7 +234,6 @@
         /* 🛰️ FIXED UI FIX: The Scroll Container */
         .observation-scroll {
             flex: 1;
-            overflow-y: auto;
             padding-right: 15px;
             display: flex;
             flex-direction: column;
@@ -241,19 +241,18 @@
             margin-bottom: 20px;
         }
 
-        /* Hide scrollbar but keep functionality for clean HUD look */
-        .observation-scroll::-webkit-scrollbar { width: 4px; }
-        .observation-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-        /* Action Terminal - FIXED to bottom */
+        /* Action Terminal - FIXED to bottom of main area */
         .action-hub {
             border-top: 1px solid var(--border);
             padding: 30px 0;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            background: var(--bg-deep);
-            margin-top: 0;
+            background: transparent;
+            margin-top: auto;
+            position: sticky;
+            bottom: 0px;
+            backdrop-filter: blur(10px);
         }
 
         .action-smart-label {
@@ -348,7 +347,12 @@
         }
 
         /* Forensic Feed */
-        .feed-panel { grid-area: feed; font-family: 'JetBrains Mono', monospace; }
+        .feed-panel { 
+            grid-area: feed; 
+            font-family: 'JetBrains Mono', monospace; 
+            background: #020406 !important; /* PROFESSIONAL DEEP BLACK */
+            border-left: 1px solid var(--border);
+        }
 
         #log-container {
             flex: 1;
@@ -356,15 +360,17 @@
             flex-direction: column-reverse;
             gap: 12px;
             overflow-y: auto;
-            mask-image: linear-gradient(to bottom, transparent, black 15%);
+            padding-top: 20px;
+            mask-image: linear-gradient(to bottom, transparent, black 10%);
         }
 
         .log-entry {
             padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 2px solid var(--border);
-            font-size: 0.75rem;
+            background: rgba(0, 242, 255, 0.03);
+            border-left: 2px solid var(--accent);
+            font-size: 0.7rem;
             line-height: 1.4;
+            color: #b0c4de; /* COMMAND CYAN-WHITE */
             animation: slide-in 0.3s ease-out;
         }
 
