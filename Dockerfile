@@ -5,10 +5,11 @@ WORKDIR /app
 # Enable unbuffered stdout for logging
 ENV PYTHONUNBUFFERED=1
 
-# Install required system dependencies (especially for PIL and basic ML needs)
+# Install required system dependencies (libmcp-dev for faiss, others for pillow/requests)
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
