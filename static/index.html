@@ -35,10 +35,22 @@
             color: var(--text-primary);
             font-family: 'Outfit', sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(0, 242, 255, 0.05), transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(255, 0, 85, 0.05), transparent 40%);
+            overflow: hidden; /* Prevent overall page scroll */
+            position: relative;
+        }
+
+        /* 🖼️ High-Tech Background Image - CYBER GUARD */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('cyber_guard_bg_1775156518785.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15; /* Subtle background visibility */
+            z-index: -1;
+            filter: grayscale(0.5) brightness(0.5);
+            pointer-events: none;
         }
 
         /* Scanline VFX */
@@ -136,11 +148,18 @@
         /* Sidebars & Panels */
         aside, .main-content {
             background: var(--bg-deep);
+            /* Soft glass transparency to show BG image */
+            background: rgba(5, 7, 10, 0.7); 
+            backdrop-filter: blur(8px);
             padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 25px;
-            overflow-y: auto;
+            height: 100%; /* Important for internal scroll */
+        }
+
+        .main-content {
+            padding-bottom: 0; /* Action hub handles its own padding */
         }
 
         h2 {
@@ -208,17 +227,43 @@
             width: 0%;
             background: var(--accent);
             box-shadow: 0 0 10px var(--accent);
-            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Action Terminal */
-        .action-hub {
-            margin-top: auto;
-            border-top: 1px solid var(--border);
-            padding-top: 30px;
+        /* 🛰️ FIXED UI FIX: The Scroll Container */
+        .observation-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 15px;
             display: flex;
             flex-direction: column;
             gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Hide scrollbar but keep functionality for clean HUD look */
+        .observation-scroll::-webkit-scrollbar { width: 4px; }
+        .observation-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* Action Terminal - FIXED to bottom */
+        .action-hub {
+            border-top: 1px solid var(--border);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--bg-deep);
+            margin-top: 0;
+        }
+
+        .action-smart-label {
+            font-size: 0.65rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono';
+            margin-top: 8px;
+            text-align: center;
         }
 
         .control-strip {
@@ -409,48 +454,52 @@
         </aside>
 
         <section class="main-content">
-            <h2>Neural Observation Stream</h2>
+            <div class="observation-scroll">
+                <h2>Neural Observation Stream</h2>
 
-            <div class="intel-grid">
-                <div class="intel-tile" id="tile-sscd">
-                    <div class="hud-label">SSCD Neural Similarity</div>
-                    <div class="hud-value" id="val-sscd">0.000</div>
-                    <div class="meter-container"><div class="meter-fill" id="fill-sscd"></div></div>
-                    <div class="hud-sub" id="lbl-sscd">System Idle</div>
-                </div>
+                <div class="intel-grid">
+                    <div class="intel-tile" id="tile-sscd">
+                        <div class="hud-label">SSCD Neural Similarity</div>
+                        <div class="hud-value" id="val-sscd">0.000</div>
+                        <div class="meter-container"><div class="meter-fill" id="fill-sscd"></div></div>
+                        <div class="hud-sub" id="lbl-sscd">System Idle</div>
+                    </div>
 
-                <div class="intel-tile" id="tile-phash">
-                    <div class="hud-label">Perceptual Hamming Dist</div>
-                    <div class="hud-value" id="val-phash">00</div>
-                    <div class="meter-container"><div class="meter-fill" id="fill-phash"></div></div>
-                    <div class="hud-sub" id="lbl-phash">System Idle</div>
-                </div>
+                    <div class="intel-tile" id="tile-phash">
+                        <div class="hud-label">Perceptual Hamming Dist</div>
+                        <div class="hud-value" id="val-phash">00</div>
+                        <div class="meter-container"><div class="meter-fill" id="fill-phash"></div></div>
+                        <div class="hud-sub" id="lbl-phash">System Idle</div>
+                    </div>
 
-                <div class="intel-tile">
-                    <div class="hud-label">Metadata Consistency</div>
-                    <div class="hud-value" id="val-meta" style="font-size: 1.8rem;">1.00</div>
-                    <div class="hud-sub" id="lbl-meta">Original State</div>
-                </div>
+                    <div class="intel-tile">
+                        <div class="hud-label">Metadata Consistency</div>
+                        <div class="hud-value" id="val-meta" style="font-size: 1.8rem;">1.00</div>
+                        <div class="hud-sub" id="lbl-meta">Original State</div>
+                    </div>
 
-                <div class="intel-tile" id="tile-threat">
-                    <div class="hud-label">Risk Assessment</div>
-                    <div class="hud-value" id="val-threat" style="font-size: 1.4rem; color: var(--accent);">STABLE</div>
-                    <div class="hud-sub" id="lbl-mod">No Modification Detected</div>
-                </div>
+                    <div class="intel-tile" id="tile-threat">
+                        <div class="hud-label">Risk Assessment</div>
+                        <div class="hud-value" id="val-threat" style="font-size: 1.4rem; color: var(--accent);">STABLE</div>
+                        <div class="hud-sub" id="lbl-mod">No Modification Detected</div>
+                    </div>
 
-                <div class="intel-tile" id="tile-vision" style="grid-column: span 2; display: none;">
-                    <div class="hud-label">Gemini Vision Intelligence</div>
-                    <div class="hud-value" id="val-vision" style="font-size: 1.1rem; line-height: 1.4;">--</div>
-                    <div class="hud-sub">Visual Analysis Complete</div>
+                    <div class="intel-tile" id="tile-vision" style="grid-column: span 2; display: none;">
+                        <div class="hud-label">Gemini Vision Intelligence</div>
+                        <div class="hud-value" id="val-vision" style="font-size: 1.1rem; line-height: 1.4;">--</div>
+                        <div class="hud-sub">Visual Analysis Complete</div>
+                    </div>
                 </div>
             </div>
 
             <div class="action-hub">
                 <div class="control-strip">
                     <div class="hud-label" style="margin:0">Action Confidence</div>
-                    <input type="range" id="confSlider" min="0.1" max="1.0" step="0.1" value="0.9" oninput="document.getElementById('confTag').innerText = this.value">
+                    <input type="range" id="confSlider" min="0.1" max="1.0" step="0.1" value="0.9" 
+                           oninput="updateSmartLabel(this.value)">
                     <div class="hud-value" id="confTag" style="font-size: 1.2rem; min-width: 40px;">0.9</div>
                 </div>
+                <div class="action-smart-label" id="smart-action-txt">AGGRESSIVE ENFORCEMENT PROTOCOL</div>
 
                 <div class="btn-stack">
                     <button class="btn-clear" onclick="stepEnv('CLEAR')">Authorize (Clear)</button>
@@ -478,6 +527,16 @@
             document.getElementById('runtime-clock').innerText = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
+
+        function updateSmartLabel(val) {
+            document.getElementById('confTag').innerText = val;
+            const lbl = document.getElementById('smart-action-txt');
+            const v = parseFloat(val);
+            if(v >= 0.9) lbl.innerText = "AGGRESSIVE ENFORCEMENT PROTOCOL";
+            else if(v >= 0.7) lbl.innerText = "STANDARD PROTECTION MODE";
+            else if(v >= 0.5) lbl.innerText = "CAUTIOUS REVIEW REQUIRED";
+            else lbl.innerText = "PASSIVE MONITORING ONLY";
+        }
 
         function logEvent(msg, type = 'info') {
             const container = document.getElementById('log-container');
@@ -524,10 +583,12 @@
             // Highlight severity
             if(obs.sscd_score > 0.82) {
                 document.getElementById('tile-sscd').style.borderColor = 'var(--danger)';
-                document.getElementById('lbl-sscd').innerText = 'CRITICAL SIMILARITY';
+                document.getElementById('lbl-sscd').innerText = 'CRITICAL SIMILARITY DETECTED';
+                document.getElementById('tile-sscd').style.boxShadow = 'inset 0 0 20px var(--danger-glow)';
             } else {
                 document.getElementById('tile-sscd').style.borderColor = 'var(--border)';
                 document.getElementById('lbl-sscd').innerText = 'STABLE SCAN';
+                document.getElementById('tile-sscd').style.boxShadow = 'none';
             }
 
             document.getElementById('disp-task-id').innerText = obs.task_id;
