@@ -153,15 +153,21 @@
         }
 
         /* Sidebars & Panels */
-        aside, .main-content {
-            background: var(--bg-deep);
+        aside, .main-content, .feed-panel {
             background: rgba(5, 8, 10, 0.75); 
             backdrop-filter: blur(12px);
             padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 25px;
-            /* REMOVE FIXED HEIGHT FOR ZOOM */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-content {
+            padding-bottom: 0;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
         }
 
         .main-content {
@@ -351,15 +357,68 @@
             font-size: 1rem;
         }
 
+        /* Service Record (History) */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .history-item {
+            background: rgba(0, 242, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.08);
+        }
+
+        .grade-badge {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            border-radius: 4px;
+            background: var(--border);
+        }
+
+        .grade-S { background: #FFD700; color: #000; box-shadow: 0 0 10px #FFD700; }
+        .grade-A { background: var(--safe); color: #000; }
+        .grade-B { background: var(--accent); color: #000; }
+        .grade-F { background: var(--danger); color: #fff; }
+
         /* Forensic Feed */
         .feed-panel { 
             grid-area: feed; 
             font-family: 'JetBrains Mono', monospace; 
-            background: #020406 !important; /* PROFESSIONAL DEEP BLACK */
-            border-left: 1px solid var(--border);
+            background: #020406 !important;
+        }
+
+        .feed-panel::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('/static/cyber_guard_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.12; /* SUBTLE BACKGROUND FOR THE LOG */
+            z-index: 0;
+            pointer-events: none;
         }
 
         #log-container {
+            z-index: 1; /* Stay above background */
             flex: 1;
             display: flex;
             flex-direction: column-reverse;
@@ -462,6 +521,11 @@
                 <div class="hud-value" id="disp-calibration" style="font-size: 1.5rem;">0.00%</div>
                 <div class="hud-sub">Agent Confidence Match</div>
             </div>
+
+            <h2 style="margin-top: 30px;">Personnel Service Record</h2>
+            <div class="history-list" id="history-container">
+                <div class="hud-sub" style="opacity: 0.5;">No records found in current session...</div>
+            </div>
         </aside>
 
         <section class="main-content">
@@ -538,6 +602,30 @@
             document.getElementById('runtime-clock').innerText = now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
+        setInterval(fetchHistory, 5000); // Poll history every 5s
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch('/history');
+                const data = await res.json();
+                renderHistory(data.history);
+            } catch (err) {}
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('history-container');
+            if(!history || history.length === 0) return;
+
+            container.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div>
+                        <div style="font-weight: bold; color: var(--text-primary)">${item.episode_id || 'CYC_00'}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-secondary)">ACC: ${(item.accuracy * 100).toFixed(0)}%</div>
+                    </div>
+                    <div class="grade-badge grade-${item.grade[0]}">${item.grade[0]}</div>
+                </div>
+            `).join('');
+        }
 
         function updateSmartLabel(val) {
             document.getElementById('confTag').innerText = val;

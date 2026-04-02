@@ -261,6 +261,14 @@ def state():
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/history")
+def get_history():
+    """
+    Retrieve the personnel service record (completed episode summaries).
+    """
+    return {"history": _episode_history}
+
+
 @app.get("/tasks", response_model=TasksResponse)
 def list_tasks():
     """
