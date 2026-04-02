@@ -1,3 +1,13 @@
+---
+title: DAPSEnv Intelligence Dashboard
+emoji: 🛡️
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🛡️ DAPSEnv — Digital Asset Protection System
 
 > An OpenEnv-compliant RL environment where an AI agent acts as a **copyright infringement investigator**, evaluating media assets using multi-signal forensic analysis.
