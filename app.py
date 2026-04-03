@@ -138,12 +138,13 @@ class TasksResponse(BaseModel):
     tasks: list[dict]
 
 
-class StatsResponse(BaseModel):
-    total_assets_scanned: int
-    high_risk_alerts: int
-    medium_risk_hits: int
-    protected_assets: int
-    monitoring_status: str
+class InfoResponse(BaseModel):
+    name: str
+    description: str
+    version: str
+    task_count: int
+    action_space: list[str]
+    observation_fields: list[str]
 
 
 class EnforcementRequest(BaseModel):
@@ -155,15 +156,14 @@ class EnforcementResponse(BaseModel):
     success: bool
     audit_id: str
     message: str
-    name: str
-    description: str
-    version: str
-    task_count: int
-    action_space: list[str]
-    observation_fields: list[str]
-    reward_range: list[float]
-    difficulty_levels: list[str]
-    unique_features: list[str]
+
+
+class StatsResponse(BaseModel):
+    total_assets_scanned: int
+    high_risk_alerts: int
+    medium_risk_hits: int
+    protected_assets: int
+    monitoring_status: str
 
 
 class MetricsResponse(BaseModel):
