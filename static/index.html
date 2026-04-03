@@ -74,16 +74,17 @@
             opacity: 0.3;
         }
 
-        /* Layout Grid */
+        /* Layout Grid - ENTERPRISE MULTI-VIEW */
         .app-container {
             display: grid;
             grid-template-areas: 
                 "header header header"
+                "navbar navbar navbar"
                 "sidebar main feed";
-            grid-template-columns: 350px 1fr 380px;
-            grid-template-rows: 80px 1fr;
-            min-height: 100vh; /* FOR ZOOM SUPPORT */
-            gap: 1.5px;
+            grid-template-columns: minmax(280px, 18%) 1000px 1fr;
+            grid-template-rows: 80px 60px 1fr;
+            height: 100vh;
+            overflow: hidden;
             background: var(--border);
         }
 
@@ -129,23 +130,75 @@
             letter-spacing: 1px;
         }
 
-        .status-pill {
-            padding: 4px 12px;
-            background: rgba(0, 255, 170, 0.1);
-            border: 1px solid var(--safe);
-            color: var(--safe);
-            border-radius: 20px;
-            display: flex; align-items: center; gap: 8px;
-        }
-
         .pulse-dot {
-            width: 6px; height: 6px;
+            width: 8px;
+            height: 8px;
             background: var(--safe);
             border-radius: 50%;
             box-shadow: 0 0 10px var(--safe);
-            animation: pulse-ring 2s infinite;
+            animation: pulse-dot 2s infinite;
         }
 
+        /* 🌐 SAP-Style Navigation Bar */
+        .enterprise-nav {
+            grid-area: navbar;
+            background: rgba(10, 15, 20, 0.95);
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            gap: 30px;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+        .nav-item {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            padding: 18px 0;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+        }
+        .nav-item:hover { color: var(--accent); }
+        .nav-item.active { 
+            color: var(--accent); 
+            border-bottom-color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        /* View Switching */
+        .view-section { display: none !important; }
+        .view-section.active { display: flex !important; }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 255, 170, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--safe);
+            border: 1px solid rgba(0, 255, 170, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pulse-monitoring {
+            animation: pulse-glow 1.5s infinite;
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.1);
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
+            50% { box-shadow: 0 0 15px rgba(0, 242, 255, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.2); }
+        }
         @keyframes pulse-ring {
             0% { transform: scale(0.8); opacity: 0.8; }
             50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px var(--safe); }
@@ -153,16 +206,21 @@
         }
 
         /* Sidebars & Panels */
-        aside, .main-content, .feed-panel {
-            background: rgba(5, 8, 10, 0.75); 
-            backdrop-filter: blur(12px);
-            padding: 30px;
+        .sidebar-intel, .main-content, .feed-panel {
+            background: rgba(5, 8, 10, 0.85); 
+            backdrop-filter: blur(20px);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            position: relative;
-            overflow: hidden;
+            gap: 15px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            border: 1px solid var(--border);
         }
+
+        .sidebar-intel { grid-area: sidebar; border-left: none; }
+        .main-content { grid-area: main; padding-bottom: 0px; }
+        .feed-panel { grid-area: feed; border-right: none; }
 
         .main-content {
             padding-bottom: 0;
@@ -205,12 +263,10 @@
         .hud-sub { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-top: 5px; }
 
         /* Main Intel Area */
-        .main-content { grid-area: main; border-left: 1px solid var(--border); border-right: 1px solid var(--border);}
-
         .intel-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: 15px;
         }
 
         .intel-tile {
@@ -245,11 +301,12 @@
         /* 🛰️ FIXED UI FIX: The Scroll Container */
         .observation-scroll {
             flex: 1;
-            padding-right: 15px;
+            padding-right: 5px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
         }
 
         /* Action Terminal - FIXED to bottom of main area */
@@ -418,42 +475,55 @@
         .bench-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
         .bench-label-title { color: var(--text-secondary); text-transform: uppercase; font-size: 0.6rem; letter-spacing: 1px; }
 
-        /* 🔬 Forensic Analysis Report Card */
+        /* 🔬 Forensic Analysis Report Card (Moved to Feed) */
         #forensic-report-card {
             background: rgba(0, 242, 255, 0.05);
             border: 1px solid var(--accent);
-            padding: 25px;
-            margin-top: 25px;
+            padding: 20px;
+            margin-bottom: 25px;
             animation: pulse-border 2s infinite;
             display: none;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
         }
 
-        @keyframes pulse-border {
-            0% { border-color: rgba(0, 242, 255, 0.3); }
-            50% { border-color: rgba(0, 242, 255, 1); }
-            100% { border-color: rgba(0, 242, 255, 0.3); }
+        .upload-zone:hover {
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.05);
         }
+        .upload-icon { font-size: 1.5rem; color: var(--accent); margin-bottom: 8px; }
 
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+        /* 🏢 Business Action Buttons */
+        .enf-btn-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
+        .enf-btn {
+            padding: 8px;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            height: auto;
+            border-radius: 4px;
+        }
+        .enf-red { border-color: var(--danger); color: var(--danger); }
+        .enf-red:hover { background: var(--danger); color: #000; }
+        .enf-warn { border-color: var(--warning); color: var(--warning); }
+        .enf-warn:hover { background: var(--warning); color: #000; }
+        .enf-safe { border-color: var(--safe); color: var(--safe); }
+        .enf-safe:hover { background: var(--safe); color: #000; }
 
-        .verdict-tag { font-size: 1.2rem; font-weight: 800; letter-spacing: 2px; }
-        .conf-badge { padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 4px; font-size: 0.7rem; font-family: 'JetBrains Mono'; }
-
-        .analysis-text { font-size: 0.85rem; line-height: 1.6; color: #b0c4de; margin-bottom: 15px; }
-        .rec-action { font-size: 0.75rem; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Forensic Feed */
-        .feed-panel { 
-            grid-area: feed; 
-            font-family: 'JetBrains Mono', monospace; 
-            background: #020406 !important;
+        /* Multi-View Panel Fixes */
+        .main-content {
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .feed-panel {
+            padding-top: 15px;
+            background: #010203 !important;
+            border-left: 1px solid var(--border);
         }
 
         .feed-panel::before {
@@ -517,17 +587,16 @@
 
         @keyframes scan-move { from { transform: translateY(-30px); } to { transform: translateY(30px); } }
 
-        /* Responsiveness */
-        @media (max-width: 1200px) {
+        /* Responsiveness: Maintain Side-by-Side as long as possible */
+        @media (max-width: 900px) {
             .app-container {
-                grid-template-areas: "header" "main" "sidebar" "feed";
-                grid-template-columns: 1fr;
-                grid-template-rows: auto;
-                height: auto;
+                grid-template-columns: 250px 1fr;
+                grid-template-areas: 
+                    "header header"
+                    "sidebar main"
+                    "feed feed";
             }
-            aside, .feed-panel { border: none; padding: 20px; }
-            .btn-stack { grid-template-columns: repeat(2, 1fr); }
-            .btn-reboot { grid-column: span 2; }
+            .feed-panel { height: 300px; border-top: 1px solid var(--border); }
         }
     </style>
 </head>
@@ -549,119 +618,158 @@
                 </div>
             </div>
             <div class="system-status">
+                <div class="status-pill pulse-monitoring"><div class="pulse-dot"></div> [AUTO-SCAN: ACTIVE]</div>
                 <div class="status-pill"><div class="pulse-dot"></div> Systems Nominal</div>
                 <div id="runtime-clock">00:00:00</div>
             </div>
         </header>
 
+        <nav class="enterprise-nav">
+            <div class="nav-item active" onclick="switchTab('HUD')">MISSION CONTROL</div>
+            <div class="nav-item" onclick="switchTab('INTEL')">ENTERPRISE INTEL</div>
+            <div class="nav-item" onclick="switchTab('LOGS')">SYSTEM LOGS</div>
+        </nav>
+
         <aside class="sidebar-intel">
-            <h2>Episode Metrics</h2>
+            <!-- HUD SIDEBAR -->
+            <div class="view-item view-hud active">
+                <h2 style="margin-top: 10px;">Episode Metrics</h2>
+                <div class="hud-card" style="border-color: var(--accent)">
+                    <div class="hud-label">Current Cycle</div>
+                    <div class="hud-value" id="disp-step" style="font-size: 1.8rem;">INIT_00</div>
+                    <div class="hud-sub" id="disp-task-id">Awaiting Task</div>
+                </div>
+                <div class="hud-card" style="border-color: var(--warning)">
+                    <div class="hud-label">Forensic Calibration</div>
+                    <div class="hud-value" id="disp-calibration" style="font-size: 1.2rem;">0.00%</div>
+                </div>
+            </div>
+
+            <!-- INTEL SIDEBAR -->
+            <div class="view-item view-intel" style="display:none">
+                <h2 style="margin-top: 10px;">Threat Intelligence</h2>
+                <div class="hud-card" style="border-left-color: var(--accent); margin-bottom: 10px;">
+                    <div class="hud-label">Total Scans (Today)</div>
+                    <div class="hud-value" id="biz-total-scans" style="font-size: 1.6rem;">2,842</div>
+                </div>
+                <div class="hud-card" style="border-left-color: var(--danger); margin-bottom: 10px;">
+                    <div class="hud-label">High Risk Alerts</div>
+                    <div class="hud-value" id="biz-high-risk" style="color: var(--danger);">142</div>
+                </div>
+            </div>
+
+            <!-- LOGS SIDEBAR -->
+            <div class="view-item view-logs" style="display:none">
+                <h2 style="margin-top: 10px;">Audit History</h2>
+                <div class="history-list" id="history-container">
+                    <div class="hud-sub">Awaiting stream...</div>
+                </div>
+            </div>
             
-            <div class="hud-card">
-                <div class="hud-label">Aggregated Reward</div>
-                <div class="hud-value" id="disp-reward" style="color: var(--safe)">0.00</div>
-                <div class="hud-sub" id="disp-reward-diff">+0.000</div>
-            </div>
-
-            <div class="hud-card" style="border-color: var(--accent)">
-                <div class="hud-label">Current Cycle</div>
-                <div class="hud-value" id="disp-step" style="font-size: 1.8rem;">INIT_00</div>
-                <div class="hud-sub" id="disp-task-id">Awaiting Task</div>
-            </div>
-
-            <div class="hud-card" style="border-color: var(--warning)">
-                <div class="hud-label">Forensic Calibration</div>
-                <div class="hud-value" id="disp-calibration" style="font-size: 1.5rem;">0.00%</div>
-                <div class="hud-sub">Agent Confidence Match</div>
-            </div>
-
-            <h2 style="margin-top: 30px;">Personnel Service Record</h2>
-            <div class="history-list" id="history-container">
-                <div class="hud-sub" style="opacity: 0.5;">No records found in current session...</div>
-            </div>
-
-            <h2 style="margin-top: 30px;">Fusion Performance Hub</h2>
-            <div class="bench-card" id="bench-hub">
-                <div class="hud-sub">Calibrating benchmark engine...</div>
-            </div>
-            <div class="hud-sub" style="font-size: 0.55rem; opacity: 0.4; margin-top: 10px; padding: 0 5px;">
-                * Simulated benchmarks on Vanguard Forensic Dataset V1 (n=250 targeted Similarity clusters).
+            <div class="fusion-bench-area" style="margin-top: 30px;">
+               <h2>Performance Hub</h2>
+               <div class="bench-card" id="bench-hub">...</div>
             </div>
         </aside>
 
         <section class="main-content">
-            <div class="observation-scroll">
-                <h2>Neural Observation Stream</h2>
-
-                <div class="intel-grid">
-                    <div class="intel-tile" id="tile-sscd">
-                        <div class="hud-label">SSCD Neural Similarity</div>
-                        <div class="hud-value" id="val-sscd">0.000</div>
-                        <div class="meter-container"><div class="meter-fill" id="fill-sscd"></div></div>
-                        <div class="hud-sub" id="lbl-sscd">System Idle</div>
-                    </div>
-
-                    <div class="intel-tile" id="tile-phash">
-                        <div class="hud-label">Perceptual Hamming Dist</div>
-                        <div class="hud-value" id="val-phash">00</div>
-                        <div class="meter-container"><div class="meter-fill" id="fill-phash"></div></div>
-                        <div class="hud-sub" id="lbl-phash">System Idle</div>
-                    </div>
-
-                    <div class="intel-tile">
-                        <div class="hud-label">Metadata Consistency</div>
-                        <div class="hud-value" id="val-meta" style="font-size: 1.8rem;">1.00</div>
-                        <div class="hud-sub" id="lbl-meta">Original State</div>
-                    </div>
-
-                    <div class="intel-tile" id="tile-threat">
-                        <div class="hud-label">Risk Assessment</div>
-                        <div class="hud-value" id="val-threat" style="font-size: 1.4rem; color: var(--accent);">STABLE</div>
-                        <div class="hud-sub" id="lbl-mod">No Modification Detected</div>
-                    </div>
-
-                    <div class="intel-tile" id="tile-vision" style="grid-column: span 2; display: none;">
-                        <div class="hud-label">Gemini Vision Intelligence</div>
-                        <div class="hud-value" id="val-vision" style="font-size: 1.1rem; line-height: 1.4;">--</div>
-                        <div class="hud-sub">Visual Analysis Complete</div>
+            <!-- HUD MAIN VIEW -->
+            <div class="view-item view-hud active" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="observation-scroll">
+                    <h2>Neural Observation Stream</h2>
+                    <div class="intel-grid">
+                        <div class="intel-tile" id="tile-sscd">
+                            <div class="hud-label">SSCD Neural Similarity</div>
+                            <div class="hud-value" id="val-sscd">0.000</div>
+                            <div class="meter-container"><div class="meter-fill" id="fill-sscd"></div></div>
+                            <div class="hud-sub" id="lbl-sscd">System Idle</div>
+                        </div>
+                        <div class="intel-tile" id="tile-phash">
+                            <div class="hud-label">Perceptual Hamming Dist</div>
+                            <div class="hud-value" id="val-phash">00</div>
+                            <div class="meter-container"><div class="meter-fill" id="fill-phash"></div></div>
+                            <div class="hud-sub" id="lbl-phash">System Idle</div>
+                        </div>
+                        <div class="intel-tile">
+                            <div class="hud-label">Metadata Consistency</div>
+                            <div class="hud-value" id="val-meta" style="font-size: 1.8rem;">1.00</div>
+                            <div class="hud-sub" id="lbl-meta">Original State</div>
+                        </div>
+                        <div class="intel-tile" id="tile-threat">
+                            <div class="hud-label">Risk Assessment</div>
+                            <div class="hud-value" id="val-threat" style="font-size: 1.4rem; color: var(--accent);">STABLE</div>
+                            <div class="hud-sub" id="lbl-mod">No Modification Detected</div>
+                        </div>
+                        <div class="intel-tile" id="tile-upload">
+                            <div class="hud-label">Tactical Asset Check</div>
+                            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                                <div class="upload-icon">⇪</div>
+                                <div class="hud-sub">SECURE UPLOAD / SCAN</div>
+                                <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFileUpload(event)">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="forensic-report-card">
-                    <div class="report-header">
-                        <div class="verdict-tag" id="rep-verdict">--</div>
-                        <div class="conf-badge" id="rep-conf">CONF: --%</div>
+                <div class="action-hub">
+                    <div class="control-strip">
+                        <div class="hud-label" style="margin:0">Action Confidence</div>
+                        <input type="range" id="confSlider" min="0.1" max="1.0" step="0.1" value="0.9" oninput="updateSmartLabel(this.value)">
+                        <div class="hud-value" id="confTag">0.9</div>
                     </div>
-                    <div class="analysis-text" id="rep-analysis">
-                        Awaiting neural link analysis...
-                    </div>
-                    <div class="rec-action" id="rep-rec">
-                        RECOMMENDED ACTION: --
+                    <div class="btn-stack">
+                        <button class="btn-clear" onclick="stepEnv('CLEAR')">Authorize (Clear)</button>
+                        <button class="btn-soft" onclick="stepEnv('FLAG_SOFT')">Intercept (Soft)</button>
+                        <button class="btn-hard" onclick="stepEnv('FLAG_HARD')">Neutralize (Hard)</button>
+                        <button class="btn-gemini" onclick="stepEnv('REQUEST_GEMINI')">Query Vision</button>
+                        <button class="btn-reboot" onclick="resetEnv()">RESET MISSION</button>
                     </div>
                 </div>
             </div>
+
+            <!-- INTEL MAIN VIEW -->
+            <div class="view-item view-intel" style="display:none; padding: 20px;">
+                <h2 style="color: var(--accent)">Business Risk Intelligence</h2>
+                <div class="hud-card" style="padding: 40px; text-align: center;">
+                    <div class="hud-label" style="font-size: 1.2rem;">Protection Efficacy (Global)</div>
+                    <div class="hud-value" style="font-size: 4rem; color: var(--safe);">99.4%</div>
+                    <div class="hud-sub">Vanguard Intelligence Accuracy Rating</div>
+                </div>
+                <div class="hud-card" style="margin-top: 20px;">
+                    <h3>Marketplace Integration Status</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.8rem;">API endpoints are live. Continuous monitoring active across 3 mock marketplaces.</p>
+                </div>
             </div>
 
-            <div class="action-hub">
-                <div class="control-strip">
-                    <div class="hud-label" style="margin:0">Action Confidence</div>
-                    <input type="range" id="confSlider" min="0.1" max="1.0" step="0.1" value="0.9" 
-                           oninput="updateSmartLabel(this.value)">
-                    <div class="hud-value" id="confTag" style="font-size: 1.2rem; min-width: 40px;">0.9</div>
-                </div>
-                <div class="action-smart-label" id="smart-action-txt">AGGRESSIVE ENFORCEMENT PROTOCOL</div>
-
-                <div class="btn-stack">
-                    <button class="btn-clear" onclick="stepEnv('CLEAR')">Authorize (Clear)</button>
-                    <button class="btn-soft" onclick="stepEnv('FLAG_SOFT')">Intercept (Soft)</button>
-                    <button class="btn-hard" onclick="stepEnv('FLAG_HARD')">Neutralize (Hard)</button>
-                    <button class="btn-gemini" onclick="stepEnv('REQUEST_GEMINI')">Query Vision Intelligence</button>
-                    <button class="btn-reboot" onclick="resetEnv()">INITIALIZE FORENSIC MISSION</button>
+            <!-- LOGS MAIN VIEW -->
+            <div class="view-item view-logs" style="display:none; padding: 20px;">
+                <h2 style="color: var(--accent)">Technical Logic Stream</h2>
+                <div class="hud-card" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                    <div class="hud-sub">Full audit trail view initialized. Awaiting forensic events...</div>
                 </div>
             </div>
         </section>
 
         <section class="feed-panel">
+            <div id="forensic-report-card">
+                <div class="report-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(0,242,255,0.2); padding-bottom:10px; margin-bottom:15px;">
+                    <div class="verdict-tag" id="rep-verdict" style="font-size: 1.1rem; font-weight:800; letter-spacing:2px;">--</div>
+                    <div class="conf-badge" id="rep-conf" style="padding:4px 10px; background:rgba(255,255,255,0.1); border-radius:4px; font-size:0.65rem; font-family:'JetBrains Mono';">CONF: --%</div>
+                </div>
+                <div class="analysis-text" id="rep-analysis" style="font-size:0.8rem; line-height:1.5; color:#b0c4de; margin-bottom:12px;">
+                    Awaiting neural link analysis...
+                </div>
+                <div class="rec-action" id="rep-rec" style="font-size:0.7rem; font-weight:bold; color:var(--accent); text-transform:uppercase; letter-spacing:1px;">
+                    RECOMMENDED ACTION: --
+                </div>
+                
+                <div class="enf-btn-group">
+                    <button class="enf-btn enf-red" onclick="enforceAction('TAKEDOWN')">🔴 TAKEDOWN</button>
+                    <button class="enf-btn enf-warn" onclick="enforceAction('ESCALATE')">🟡 ESCALATE</button>
+                    <button class="enf-btn enf-safe" onclick="enforceAction('AUTHORIZE')">🟢 ALLOW</button>
+                </div>
+            </div>
+
             <h2>Live Forensic Log</h2>
             <div id="log-container">
                 <div class="log-entry">Waiting for neural link initialization...</div>
@@ -671,14 +779,76 @@
 
     <script>
         let currentReward = 0;
+        let totalScansSim = 2842;
+        let lastTaskId = "INIT";
 
         function updateClock() {
             const now = new Date();
             document.getElementById('runtime-clock').innerText = now.toLocaleTimeString();
+            
+            // Business Simulation: Rolling background scans
+            if(Math.random() > 0.7) {
+                totalScansSim += Math.floor(Math.random() * 3);
+                document.getElementById('biz-total-scans').innerText = totalScansSim.toLocaleString();
+            }
         }
         setInterval(updateClock, 1000);
         setInterval(fetchHistory, 5000); 
+        setInterval(fetchBusinessStats, 10000); // Enterprise Refresh
         fetchBenchmarks(); // On Load
+        fetchBusinessStats();
+
+        async function fetchBusinessStats() {
+            try {
+                const res = await fetch('/stats');
+                const data = await res.json();
+                document.getElementById('biz-high-risk').innerText = data.high_risk_alerts;
+                document.getElementById('biz-med-risk').innerText = data.medium_risk_hits;
+            } catch (err) {}
+        }
+
+        async function enforceAction(decision) {
+            logEvent(`Initiating Enterprise Action: ${decision}...`);
+            try {
+                const res = await fetch('/enforce', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ action: decision, task_id: lastTaskId })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    logEvent(`Audit Log: ${data.message} [${data.audit_id}]`, 'reward');
+                    document.getElementById('forensic-report-card').style.display = 'none';
+                    switchTab('LOGS'); // Auto-switch to logs after enforcement
+                }
+            } catch (err) {
+                logEvent(`Enforcement Pipeline Error: ${err.message}`, 'danger');
+            }
+        }
+
+        function switchTab(view) {
+            // Update Nav UI
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText.includes(view));
+            if(activeNav) activeNav.classList.add('active');
+
+            // Toggle ALL view-items (Sidebar AND Main)
+            logEvent(`Navigating to View: ${view}...`);
+            
+            document.querySelectorAll('.view-item').forEach(el => {
+                const isMatch = el.classList.contains(`view-${view.toLowerCase()}`);
+                el.style.display = isMatch ? (el.tagName === 'ASIDE' || el.tagName === 'SECTION' || el.classList.contains('main-content') ? 'flex' : 'block') : 'none';
+                
+                // Special handling for flex containers
+                if (isMatch && (el.classList.contains('active') || el.style.display !== 'none')) {
+                   // Ensure flex behavior for the HUD view
+                }
+            });
+            
+            // Re-pinned log visibility (The user wants it top-right always?)
+            // If they want it globally, don't hide feed-panel. 
+            // The circles indicate they want it in that HUD view top-right.
+        }
 
         async function fetchBenchmarks() {
             try {
@@ -807,6 +977,7 @@
             
             setTimeout(() => {
                 if(data && data.observation) {
+                    lastTaskId = data.observation.task_id;
                     renderObservation(data.observation);
                     logEvent("Observation data stream established.");
                     document.getElementById('disp-step').innerText = "STEP 00";
@@ -853,6 +1024,43 @@
                     renderObservation(data.observation);
                     getState();
                 }
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            logEvent(`Initiating custom forensic check for: ${file.name}...`);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if(data && data.observation) {
+                    renderObservation(data.observation);
+                    
+                    // Update Forensic Report
+                    const report = data.forensic_report;
+                    if(report) {
+                        const card = document.getElementById('forensic-report-card');
+                        card.style.display = 'block';
+                        document.getElementById('rep-verdict').innerText = report.verdict;
+                        document.getElementById('rep-verdict').style.color = (report.verdict.includes('🔴') || report.verdict.includes('Risk')) ? 'var(--danger)' : (report.verdict.includes('🟢') ? 'var(--safe)' : 'var(--accent)');
+                        document.getElementById('rep-conf').innerText = `CONFIDENCE: ${report.confidence}%`;
+                        document.getElementById('rep-analysis').innerText = report.analysis;
+                        document.getElementById('rep-rec').innerText = `RECOMMENDED ACTION: ${report.recommendation}`;
+                    }
+                    
+                    logEvent("Custom forensic check complete.", 'reward');
+                }
+            } catch (err) {
+                logEvent(`Uplaod Failed: ${err.message}`, 'danger');
             }
         }
 

@@ -22,16 +22,26 @@ import time
 # Ensure local imports work in the container
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import subprocess
+import io
+from PIL import Image
 from pathlib import Path
 
-from models import DAPSAction, DAPSObservation, DAPSState, DAPSStepResult
-from environment import DAPSEnvironment
+from models import (
+    DAPSAction,
+    DAPSObservation,
+    DAPSState,
+    DAPSStepResult,
+    EpisodeSummary,
+    ModificationType
+)
+from environment import DAPSEnvironment, assess_threat_level
+from core.detector import detector_engine
 
 
 # ─────────────────────────────────────────────
@@ -39,17 +49,14 @@ from environment import DAPSEnvironment
 # ─────────────────────────────────────────────
 
 app = FastAPI(
-    title="DAPSEnv — Digital Asset Protection System",
+    title="Vanguard DAPS — Enterprise Risk Intelligence API",
     description=(
-        "An OpenEnv-compliant RL environment where an AI agent acts as a "
-        "copyright infringement investigator. The agent evaluates media assets "
-        "using SSCD similarity signals, perceptual hash, forensic metadata, "
-        "and modification fingerprints — deciding to Clear, Soft-Flag, Hard-Flag, "
-        "or invoke Gemini Vision for deeper analysis. Features 9 unique task "
-        "variants across 3 difficulty levels including adversarial decoys and "
-        "AI-generated lookalikes."
+        "An enterprise-grade Image Risk Intelligence API that automates "
+        "copyright protection at scale. It leverages Fusion Intelligence (SSCD + pHash) "
+        "to detect similarity, quantify liability, and automate takedown workflows "
+        "for marketplaces, social media, and internal brand security."
     ),
-    version="2.0.0",
+    version="2.1.0",
 )
 
 app.add_middleware(
@@ -131,7 +138,23 @@ class TasksResponse(BaseModel):
     tasks: list[dict]
 
 
-class InfoResponse(BaseModel):
+class StatsResponse(BaseModel):
+    total_assets_scanned: int
+    high_risk_alerts: int
+    medium_risk_hits: int
+    protected_assets: int
+    monitoring_status: str
+
+
+class EnforcementRequest(BaseModel):
+    action: str  # "TAKEDOWN" | "ESCALATE" | "WHITELIST"
+    task_id: str
+
+
+class EnforcementResponse(BaseModel):
+    success: bool
+    audit_id: str
+    message: str
     name: str
     description: str
     version: str
@@ -508,6 +531,101 @@ def metrics():
         best_reward=best.get("total_reward", 0),
         best_grade=best.get("performance_grade", "N/A"),
         episode_history=_episode_history[-10:],  # Last 10 episodes
+    )
+
+
+@app.post("/analyze")
+async def analyze_custom_asset(file: UploadFile = File(...)):
+    """
+    Forensic Deep-Check for custom user-uploaded assets.
+    Runs real-time SSCD and pHash matching against the protected database.
+    """
+    try:
+        # Read image
+        content = await file.read()
+        image = Image.open(io.BytesIO(content)).convert("RGB")
+        
+        # Run Detection
+        res = detector_engine.detect(image)
+        sscd = round(res.get("sscd_score", 0.0), 3)
+        phash = int(res.get("phash_distance", 64))
+        
+        # Build a "Custom Observation"
+        obs = DAPSObservation(
+            sscd_score=sscd,
+            phash_distance=phash,
+            modification_type="UPLOADED_CUSTOM",
+            modification_confidence=0.95,
+            source_domain="user_upload_portal",
+            file_size_ratio=1.0,
+            upload_delay_hours=0.0,
+            metadata_consistency=0.9,
+            timestamp_anomaly=False,
+            source_reputation=0.5,
+            task_id="CUSTOM_FORENSIC_CHECK",
+            step_in_episode=0,
+            difficulty="n/a",
+            threat_level=assess_threat_level(sscd, phash, 0.5)
+        )
+
+        # Generate Report Reasoning
+        report = {
+            "verdict": "SECURE",
+            "confidence": round(sscd * 100, 1),
+            "analysis": "Neural scanning complete.",
+            "recommendation": "AUTHORIZED"
+        }
+
+        if sscd > 0.85:
+            report["verdict"] = "MATCH DETECTED 🔴"
+            report["analysis"] = f"Strong neural similarity ({round(sscd*100, 1)}%) found in database. Evidence suggests unauthorized duplication."
+            report["recommendation"] = "IMMEDIATE TAKEDOWN / COPYRIGHT FLAG"
+        elif sscd > 0.65:
+            report["verdict"] = "SUSPICIOUS 🟠"
+            report["analysis"] = "Moderate similarity found. Potential derivative work or heavy modification."
+            report["recommendation"] = "MANUAL REVIEW REQUIRED"
+        else:
+            report["verdict"] = "NO MATCH 🟢"
+            report["analysis"] = "No direct neural fingerprints found. Asset appears original."
+            report["recommendation"] = "AUTHORIZE DISTRIBUTION"
+
+        return {
+            "observation": obs,
+            "forensic_report": report,
+            "message": "Custom forensic analysis complete."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forensic Analysis Failed: {str(e)}")
+
+
+@app.get("/stats", response_model=StatsResponse)
+def get_business_stats():
+    """
+    Returns rolling enterprise-level statistics for the dashboard.
+    Simulates high-volume continuous monitoring for the hackathon.
+    """
+    total = sum(e.get("steps", 0) for e in _episode_history) + 2842 
+    high = sum(1 for e in _episode_history if e.get("total_reward", 0) < 0) + 142
+    return StatsResponse(
+        total_assets_scanned=total,
+        high_risk_alerts=high,
+        medium_risk_hits=42,
+        protected_assets=954,
+        monitoring_status="ACTIVE: CONTINUOUS SCAN"
+    )
+
+
+@app.post("/enforce", response_model=EnforcementResponse)
+def enforce_decision(req: EnforcementRequest):
+    """
+    Handles business-level enforcement actions.
+    Simulates the final 'Action Pipeline' for platform integration.
+    """
+    audit_id = f"AUD_ENF_{uuid.uuid4().hex[:8].upper()}"
+    return EnforcementResponse(
+        success=True,
+        audit_id=audit_id,
+        message=f"Forensic Action '{req.action}' initiated for {req.task_id}."
     )
 
 
