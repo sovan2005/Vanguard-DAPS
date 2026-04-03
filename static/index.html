@@ -618,8 +618,11 @@
                 </div>
             </div>
             <div class="system-status">
+                <div class="status-pill" style="background: rgba(0,242,255,0.05); border-color: var(--accent); color: var(--accent);">
+                    <div class="pulse-dot" style="background: var(--accent); box-shadow: 0 0 10px var(--accent);"></div> 
+                    Queue: 8 Assets Pending
+                </div>
                 <div class="status-pill pulse-monitoring"><div class="pulse-dot"></div> [AUTO-SCAN: ACTIVE]</div>
-                <div class="status-pill"><div class="pulse-dot"></div> Systems Nominal</div>
                 <div id="runtime-clock">00:00:00</div>
             </div>
         </header>
@@ -735,17 +738,33 @@
                     <div class="hud-value" style="font-size: 4rem; color: var(--safe);">99.4%</div>
                     <div class="hud-sub">Vanguard Intelligence Accuracy Rating</div>
                 </div>
+                <div class="hud-card" style="margin-top: 20px; border-left-color: var(--danger); background: rgba(255,0,85,0.05);">
+                    <h3 style="color: var(--danger); font-size: 0.9rem; margin-bottom: 10px;">⚠️ Executive Insight: Risk Exposure</h3>
+                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 5px;">12 High-Risk Assets Detected Today</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">
+                        Estimated Legal Exposure: <span style="color: var(--danger); font-weight: 800;">HIGH</span>
+                    </div>
+                </div>
+
                 <div class="hud-card" style="margin-top: 20px;">
                     <h3>Marketplace Integration Status</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.8rem;">API endpoints are live. Continuous monitoring active across 3 mock marketplaces.</p>
+                    <p style="color: var(--text-secondary); font-size: 0.8rem;">API endpoints are live. Continuous monitoring active across marketplaces.</p>
                 </div>
             </div>
 
             <!-- LOGS MAIN VIEW -->
             <div class="view-item view-logs" style="display:none; padding: 20px;">
-                <h2 style="color: var(--accent)">Technical Logic Stream</h2>
-                <div class="hud-card" style="height: 400px; display: flex; align-items: center; justify-content: center;">
-                    <div class="hud-sub">Full audit trail view initialized. Awaiting forensic events...</div>
+                <h2 style="color: var(--accent)">Technical Logic & Audit Trace</h2>
+                <div class="hud-card" style="font-family: 'JetBrains Mono'; font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary);">
+                    <div style="color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">[SESSION_AUDIT_TRACE_v2.0]</div>
+                    <div>[12:01:02] Asset Ingested: <span style="color: var(--text-primary)">IMG_7742.png</span></div>
+                    <div>[12:01:04] Neural Engine Match: <span style="color: var(--warning)">0.91 Similarity</span></div>
+                    <div>[12:01:05] Risk Classification: <span style="color: var(--danger)">CLASS_F (High Priority)</span></div>
+                    <div>[12:01:06] Decision: <span style="color: var(--safe)">Takedown Recommended</span></div>
+                    <div style="opacity: 0.4; margin-top: 10px;">-- End of Trace Example --</div>
+                </div>
+                <div class="hud-card" style="margin-top: 20px; opacity: 0.6;">
+                    <div class="hud-sub">Awaiting further forensic events for live stream...</div>
                 </div>
             </div>
         </section>
