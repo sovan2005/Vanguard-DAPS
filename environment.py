@@ -261,30 +261,34 @@ class DAPSEnvironment:
         if seed is not None: random.seed(seed)
         episode_id = str(uuid.uuid4())[:8]
 
-        tasks = []
-        easy_gens = list(EASY_GENERATORS)
-        random.shuffle(easy_gens)
-        for i, gen in enumerate(easy_gens): tasks.append(gen(f"{episode_id}_easy_{i}"))
+        # Use partials or delayed execution to avoid running 9 ML inferences on startup
+        task_blueprints = []
+        
+        # Collect all generators with their expected ID
+        for i in range(3):
+            task_blueprints.append((EASY_GENERATORS[i], f"{episode_id}_easy_{i}"))
+            task_blueprints.append((MEDIUM_GENERATORS[i], f"{episode_id}_med_{i}"))
+            task_blueprints.append((HARD_GENERATORS[i], f"{episode_id}_hard_{i}"))
 
-        medium_gens = list(MEDIUM_GENERATORS)
-        random.shuffle(medium_gens)
-        for i, gen in enumerate(medium_gens): tasks.append(gen(f"{episode_id}_medium_{i}"))
+        random.shuffle(task_blueprints)
+        self._task_queue = task_blueprints
 
-        hard_gens = list(HARD_GENERATORS)
-        random.shuffle(hard_gens)
-        for i, gen in enumerate(hard_gens): tasks.append(gen(f"{episode_id}_hard_{i}"))
-
-        random.shuffle(tasks)
-        self._task_queue = tasks
-
-        self._state = DAPSState(episode_id=episode_id, current_step=0, max_steps=len(tasks), total_reward=0.0, difficulty=difficulty or "mixed")
+        self._state = DAPSState(
+            episode_id=episode_id, 
+            current_step=0, 
+            max_steps=len(task_blueprints), 
+            total_reward=0.0, 
+            difficulty=difficulty or "mixed"
+        )
         self._awaiting_gemini = False
         self._confidence_history = []
         self._gemini_correct_after = 0
         self._reward_by_difficulty = {"easy": 0.0, "medium": 0.0, "hard": 0.0}
         self._total_terminal_actions = 0
 
-        self._current_obs, self._current_ground_truth = self._task_queue.pop(0)
+        # Lazy execution of the first task only
+        gen_fn, tid = self._task_queue.pop(0)
+        self._current_obs, self._current_ground_truth = gen_fn(tid)
         self._current_obs = self._current_obs.model_copy(update={"step_in_episode": 0})
         return self._current_obs
 
@@ -341,7 +345,9 @@ class DAPSEnvironment:
         self._awaiting_gemini = False
         done = False
         if self._task_queue:
-            self._current_obs, self._current_ground_truth = self._task_queue.pop(0)
+            # Lazy execution of the NEXT task
+            gen_fn, tid = self._task_queue.pop(0)
+            self._current_obs, self._current_ground_truth = gen_fn(tid)
             self._current_obs = self._current_obs.model_copy(update={"step_in_episode": self._state.current_step})
             next_obs = self._current_obs
         else:
