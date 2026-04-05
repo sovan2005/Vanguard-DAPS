@@ -259,25 +259,33 @@
         }
 
         .hud-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;}
-        .hud-value { font-size: clamp(1.5rem, 4vw, 2.4rem); font-weight: 300; font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hud-value { 
+            font-size: clamp(1.1rem, 2.5vw, 1.6rem); 
+            font-weight: 300; 
+            font-family: 'JetBrains Mono', monospace; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+        }
         .hud-sub { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-top: 5px; }
 
         /* Main Intel Area */
         .intel-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
         }
 
         .intel-tile {
             background: var(--bg-panel);
             border: 1px solid var(--border);
-            padding: 25px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             position: relative;
             overflow: hidden;
+            min-height: 120px;
         }
 
         /* Signal Meters */
@@ -653,7 +661,8 @@
             .feed-panel { order: 4; height: 400px; overflow-y: auto; border-top: 1px solid var(--border); }
 
             .intel-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
 
             .btn-stack {
