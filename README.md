@@ -1,7 +1,4 @@
-
-
 <div align="center">
-
 # Vanguard-DAPS
 
 **A production-grade OpenEnv environment for copyright infringement detection via multi-signal forensic analysis**
