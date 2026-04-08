@@ -8,154 +8,58 @@ app_port: 7860
 pinned: false
 ---
 
-# 🛡️ DAPSEnv — Digital Asset Protection System
+<div align="center">
 
-> An OpenEnv-compliant RL environment where an AI agent acts as a **copyright infringement investigator**, evaluating media assets using multi-signal forensic analysis.
+# Vanguard-DAPS
 
-[![OpenEnv](https://img.shields.io/badge/OpenEnv-Compliant-green)](https://openenv.dev)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+**A production-grade OpenEnv environment for copyright infringement detection via multi-signal forensic analysis**
+
+[![OpenEnv](https://img.shields.io/badge/OpenEnv-spec_v1-4B5563?style=flat-square)](https://meta-pytorch.org/OpenEnv)
+[![HF Space](https://img.shields.io/badge/HF_Space-live-F97316?style=flat-square&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/Sovan-123456789/daps-env-hackathon)
+[![Python](https://img.shields.io/badge/Python-3.11-3B82F6?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![License](https://img.shields.io/badge/License-MIT-6B7280?style=flat-square)](LICENSE)
+[![Hackathon](https://img.shields.io/badge/Meta_×_PyTorch-OpenEnv_Hackathon-1D4ED8?style=flat-square)](https://scaler.com/school-of-technology/meta-pytorch-hackathon)
+
+</div>
 
 ---
 
-## 🎯 What It Does
+## Overview
 
-An AI agent receives **forensic signal data** about a media asset and must decide:
+Vanguard-DAPS is an [OpenEnv](https://meta-pytorch.org/OpenEnv)-compliant reinforcement learning environment that frames copyright infringement detection as a sequential decision problem. An agent receives a bundle of forensic signals derived from the SSCD embedding pipeline, perceptual hashing, and modification fingerprinting, then must decide how to classify a query asset: clear it, escalate to review, block it, or invoke a computationally expensive vision oracle.
 
-| Action | Meaning | When to Use |
-|--------|---------|-------------|
-| `CLEAR` | Asset is original | Low similarity, verified source |
-| `FLAG_SOFT` | Suspected copy → human review | Moderate signals, needs investigation |
-| `FLAG_HARD` | Confirmed infringement → block | Strong signals, obvious copy |
-| `REQUEST_GEMINI` | Deep visual analysis (costs -0.1) | Ambiguous cases only |
+The environment is designed to surface the core tension in production-scale copyright enforcement systems: **false negatives (missed infringement) carry asymmetric cost relative to false positives (wrongful blocking)**. The reward function encodes this asymmetry explicitly, making it unsuitable to solve via a degenerate always-flag policy.
 
-## 🧠 What Makes This Special
+This was built as a submission for the **Meta × PyTorch / Scaler OpenEnv Hackathon (Round 1, April 2026)** and is deployed live on Hugging Face Spaces.
 
-1. **9 unique task variants** — not just easy/medium/hard, but specific scenarios (adversarial decoys, AI-generated lookalikes, metadata anomalies)
-2. **Confidence-weighted rewards** — high confidence on wrong answer = extra penalty. Teaches RL calibration.
-3. **Forensic metadata signals** — `metadata_consistency`, `timestamp_anomaly`, `source_reputation` beyond just similarity scores
-4. **Adversarial decoy task** — signals look like infringement but it's original. Tests false positive control.
-5. **AI-generated lookalike detection** — cutting-edge scenario where style transfer creates similar-looking content
-6. **Episode performance grading** — A+ through F based on accuracy, efficiency, and calibration
+---
 
-## 🗂️ Task Directory (Expected Difficulty)
+## Signal Design Rationale
 
-DAPSEnv ships with 9 strictly bounded testing matrices spanning three brackets of difficulty:
+Each observation vector is composed of signals drawn from the real-world DAPS forensics pipeline:
 
-*   **Easy**: `Exact Copy Detection`, `Recompressed Copy`, `Cropped Copy` - Obvious infringement (SSCD > 0.90) leading to a quick `FLAG_HARD` outcome.
-*   **Medium**: `Filtered Asset`, `Watermark Detection`, `Metadata Mismatch` - Requires the agent to weigh noise vs. neural embedding. Leads heavily to `FLAG_SOFT`.
-*   **Hard**: `Ambiguous Classification`, `Adversarial Decoy`, `AI-Generated Lookalike` - Aggressive tests challenging frontier models with false positives. Encourages usage of `REQUEST_GEMINI` tooling and requires high inference capabilities.
+| Signal | Source | Signal Semantics |
+|--------|--------|-----------------|
+| `sscd_score` | SSCD (Facebook Research, ICCV 2022) | Embedding-space similarity via a self-supervised contrastive model. Invariant to color transforms, crops, and compression; breaks under semantic edits and compositing. Range `[0, 1]`. |
+| `phash_distance` | Perceptual Hash (dHash/aHash) | Structural similarity at the pixel level. Complementary to SSCD — catches compression artifacts SSCD normalizes away. Range `[0, 64]`. |
+| `modification_type` | Modification Fingerprint Classifier | Inferred transformation type: `NONE`, `CROP`, `FILTER`, `WATERMARK`, `COMPOSITE`, `UNKNOWN`. |
+| `modification_confidence` | Modification Fingerprint Classifier | Classifier confidence on the `modification_type` label. |
+| `source_domain` | Upload metadata | Categorical source context (`social_media`, `news_site`, `ecommerce`, `unknown`, `vpn_detected`). |
+| `file_size_ratio` | Metadata | Query / reference file size. Ratios significantly above 1.0 suggest compositing; below 0.8 suggest lossy recompression. |
+| `upload_delay_hours` | Metadata | Time delta between original registration and query upload. Negative values indicate the query predates the reference — a strong originality signal. |
+| `gemini_verdict` | Gemini Vision API (simulated) | Natural language verdict from deep visual inspection. Only populated after a `REQUEST_GEMINI` action. |
+| `gemini_similarity` | Gemini Vision API (simulated) | Continuous similarity estimate from the vision oracle. |
 
-## 📊 Observation Space
+The core difficulty gradient in the environment arises from signal conflicts. Easy tasks have strongly correlated signals (high SSCD, low pHash, obvious modification). Hard tasks introduce adversarial configurations where SSCD and pHash point in opposite directions, or where metadata anomalies contradict similarity scores — cases where a threshold-only policy collapses and the oracle becomes necessary.
 
-| Signal | Type | Range | What It Tells You |
-|--------|------|-------|-------------------|
-| `sscd_score` | float | 0.0–1.0 | SSCD embedding similarity (PRIMARY signal) |
-| `phash_distance` | int | 0–256 | Perceptual hash distance |
-| `modification_type` | enum | 8 types | How asset was modified |
-| `metadata_consistency` | float | 0.0–1.0 | How well metadata matches original |
-| `source_reputation` | float | 0.0–1.0 | Trustworthiness of source |
-| `timestamp_anomaly` | bool | - | Suspicious upload timing |
-| `threat_level` | enum | 5 levels | Fused threat assessment |
-| `gemini_verdict` | string | optional | Gemini Vision result |
+---
 
-## 🏗️ Architecture
+## Action Space
 
-```
-┌─────────────────────────────────────────────────────┐
-│                   FastAPI Server                     │
-│  POST /reset → start episode, get first observation │
-│  POST /step  → submit action, get reward + next obs │
-│  GET  /state → episode snapshot with analytics      │
-│  GET  /tasks → 9 task variants with graders         │
-│  GET  /info  → environment capabilities             │
-│  GET  /metrics → aggregate performance analytics    │
-└────────────────────┬────────────────────────────────┘
-                     │
-         ┌───────────┴───────────┐
-         │   DAPSEnvironment     │
-         │  • 9 task generators  │
-         │  • Reward function    │
-         │  • Gemini simulator   │
-         │  • Evidence packets   │
-         │  • Episode analytics  │
-         └───────────────────────┘
-```
-
-## 🚀 Quick Start
-
-### Local Testing
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Start the environment server
-python app.py
-
-# In another terminal, run the baseline agent
-python inference.py
-```
-
-### Docker
-
-```bash
-docker build -t dapsenv .
-docker run -p 7860:7860 dapsenv
-```
-
-### HF Spaces Deployment
-
-1. Push this repo to a Hugging Face Space (Docker SDK)
-2. The server auto-starts on port 7860
-3. Verify: `curl https://your-space.hf.space/health`
-
-## 📁 Project Files
-
-| File | Purpose |
-|------|---------|
-| `models.py` | Pydantic models — Action, Observation, State, EvidencePacket |
-| `environment.py` | Core game engine — 9 tasks, graders, reward function |
-| `app.py` | FastAPI server — all OpenEnv-compliant endpoints |
-| `inference.py` | Baseline agent — rule-based + LLM fallback |
-| `openenv.yaml` | OpenEnv spec declaration |
-| `Dockerfile` | Container setup for HF Spaces |
-| `requirements.txt` | Python dependencies |
-
-## 🎮 Reward Structure (OpenEnv Validated)
-
-Strictly normalized to `0.0` - `1.0` as per Hackathon spec:
-
-| Outcome | Reward | Notes |
-|---------|--------|-------|
-| Correct decision | `1.0` | Exact match (e.g., FLAG_HARD on Exact Copy or CLEAR on original) |
-| Partial match | `0.5` | Agent issued FLAG_SOFT when FLAG_HARD was expected |
-| False positive | `0.2` | Cautionary flagging of an original asset |
-| False negative | `0.0` | Severe: Agent cleared a confirmed copy |
-| REQUEST_GEMINI | `0.0` | Requires a follow-up action to complete task but safely bounded to 0.0 to prevent disqualification |
-| Episode Bonus | `0.5` - `1.0` | Awarded dynamically for completing 7-9 out of 9 episode tasks accurately |
-
-## 🏆 Baseline Scores
-
-The provided `inference.py` script achieves the following baseline against the DAPS environment.
-
-*   **Total Episodes**: 3 (9 tasks each)
-*   **Average Score (Accuracy)**: `0.88`
-*   **False Positive Rate**: ~1 per episode
-*   **False Negative Rate**: 0
-*   **Average Steps**: 27
-*   **Evaluator Grade**: `A (Pro)`
-
-## 📋 Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `API_BASE_URL` | `http://localhost:7860` | LLM API endpoint |
-| `MODEL_NAME` | `gpt-4o-mini` | Model identifier |
-| `HF_TOKEN` | - | Hugging Face token |
-| `ENV_BASE_URL` | `http://localhost:7860` | Environment URL |
-| `PORT` | `7860` | Server port |
-
-## 📜 License
-
-MIT — built for the Meta × PyTorch OpenEnv Hackathon.
+```python
+class ActionType(str, Enum):
+    CLEAR          = "CLEAR"
+    FLAG_SOFT      = "FLAG_SOFT"
+    FLAG_HARD      = "FLAG_HARD"
+    REQUEST_GEMINI = "REQUEST_GEMINI"
