@@ -1071,23 +1071,23 @@
                 const b = data.baseline;
                 
                 document.getElementById('bench-hub').innerHTML = `
-                    <div class="bench-row">
-                        <span class="bench-label-title">Detection Accuracy</span>
-                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: ${v.accuracy*100}%"></div></div>
-                        <span class="bench-val" style="color: var(--safe)">${(v.accuracy*100).toFixed(1)}%</span>
-                    </div>
-                    <div class="bench-row">
-                        <span class="bench-label-title">Threat Catch Rate (Recall)</span>
-                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="width: ${v.threat_detection_rate*100}%"></div></div>
-                        <span class="bench-val" style="color: var(--safe)">${(v.threat_detection_rate*100).toFixed(1)}%</span>
-                    </div>
-                    <div class="bench-row">
-                        <span class="bench-label-title">False Alarm Rate</span>
-                        <div class="bench-bar-bg"><div class="bench-bar-fill" style="background: var(--danger); width: ${v.false_alarm_rate*100}%"></div></div>
-                        <span class="bench-val" style="color: var(--danger)">${(v.false_alarm_rate*100).toFixed(1)}%</span>
-                    </div>
-                    <div class="hud-sub" style="text-align: center; margin-top: 10px; font-weight: bold; color: var(--accent)">
-                        VANGUARD REDUCES MISSED THREATS BY ${data.improvement_pct.threat_detection}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="intel-tile" style="min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                            <div class="hud-label" style="font-size: 0.65rem;">Detection Accuracy</div>
+                            <div class="hud-value" style="color: var(--safe); font-size: 1.4rem;">${(v.accuracy*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="intel-tile" style="min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                            <div class="hud-label" style="font-size: 0.65rem;">Threat Catch Rate</div>
+                            <div class="hud-value" style="color: var(--safe); font-size: 1.4rem;">${(v.threat_detection_rate*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="intel-tile" style="min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-color: rgba(255, 0, 85, 0.3);">
+                            <div class="hud-label" style="font-size: 0.65rem;">False Alarm Rate</div>
+                            <div class="hud-value" style="color: var(--danger); font-size: 1.4rem;">${(v.false_alarm_rate*100).toFixed(1)}%</div>
+                        </div>
+                        <div class="intel-tile" style="min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-color: var(--accent); background: rgba(0, 242, 255, 0.05);">
+                            <div class="hud-label" style="font-size: 0.65rem;">Threats Reduced</div>
+                            <div class="hud-value" style="color: var(--accent); font-size: 1.2rem;">${data.improvement_pct.threat_detection}</div>
+                        </div>
                     </div>
                 `;
             } catch (err) {}
