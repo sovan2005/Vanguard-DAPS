@@ -1246,8 +1246,8 @@
                     document.getElementById('lab-val-risk').innerText = m.risk_assessment;
                     
                     // Style by risk
-                    const riskColor = m.risk_assessment.includes('HIGH') ? 'var(--danger)' : 
-                                     (m.risk_assessment.includes('LOW') ? 'var(--safe)' : 'var(--warning)');
+                    const riskColor = m.risk_assessment.includes('HIGH') || m.risk_assessment.includes('CRITICAL') ? 'var(--danger)' : 
+                                     (m.risk_assessment.includes('LOW') || m.risk_assessment.includes('BENIGN') ? 'var(--safe)' : 'var(--warning)');
                     document.getElementById('lab-val-risk').style.color = riskColor;
 
                     logEvent("Pairwise Forensic Analysis Complete: Reference Indexed.", 'reward');
@@ -1255,7 +1255,8 @@
                     // Scroll to results
                     resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
-                    logEvent("Lab Analysis complete, but no metrics returned.", 'warning');
+                    const errorMsg = data.detail || "No metrics returned from backend.";
+                    logEvent(`Lab Analysis Error: ${errorMsg}`, 'danger');
                 }
             } catch (err) {
                 logEvent(`Lab Failure: ${err.message}`, 'danger');

@@ -42,6 +42,7 @@ from models import (
     ModificationType
 )
 import hashlib
+import numpy as np
 from core.embedder import embedder
 from core.indexer import faiss_index
 from db.database import get_session
