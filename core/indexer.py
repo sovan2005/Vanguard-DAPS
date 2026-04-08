@@ -33,11 +33,12 @@ class FAISSIndex:
             logger.info("Created new FAISS index")
 
     def add(self, embedding: np.ndarray, asset_id: str) -> int:
+        import uuid
         vec = embedding.reshape(1, -1).astype(np.float32)
-        faiss_id = self._next_id
+        # Safely assign a non-colliding integer id for faiss without needing synchronization
+        faiss_id = uuid.uuid4().int % 2147483647
         self.index.add_with_ids(vec, np.array([faiss_id], dtype=np.int64))
         self.id_map[str(faiss_id)] = asset_id
-        self._next_id += 1
         self._save()
         return faiss_id
 

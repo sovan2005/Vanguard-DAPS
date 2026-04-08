@@ -1046,11 +1046,15 @@
             
             document.querySelectorAll('.view-item').forEach(el => {
                 const isMatch = el.classList.contains(`view-${view.toLowerCase()}`);
-                el.style.display = isMatch ? (el.tagName === 'ASIDE' || el.tagName === 'SECTION' || el.classList.contains('main-content') ? 'flex' : 'block') : 'none';
                 
-                // Special handling for flex containers
-                if (isMatch && (el.classList.contains('active') || el.style.display !== 'none')) {
-                   // Ensure flex behavior for the HUD view
+                if (isMatch) {
+                    if (el.classList.contains('view-lab') || el.classList.contains('view-hud') || el.tagName === 'ASIDE' || el.tagName === 'SECTION' || el.classList.contains('main-content')) {
+                        el.style.display = 'flex';
+                    } else {
+                        el.style.display = 'block';
+                    }
+                } else {
+                    el.style.display = 'none';
                 }
             });
             
