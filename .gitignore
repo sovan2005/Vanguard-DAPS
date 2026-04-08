@@ -11,11 +11,11 @@ env/
 test_env/
 
 # Data & Database (Local Only)
-daps.db
-data/
-models/*.pt
-baseline_scores.json
-output.txt
+**/daps.db
+**/data/
+**/models/*.pt
+**/baseline_scores.json
+**/output.txt
 
 # Artifacts & Local Utilities (Local Only)
 daps_implementation.jsx
