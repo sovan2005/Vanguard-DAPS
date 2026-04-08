@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "daps-env-v2"
+version = "2.0.0"
+description = "Vanguard Digital Asset Protection System (DAPS) for Meta x PyTorch OpenEnv Hackathon"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi==0.115.0",
+    "uvicorn[standard]==0.30.6",
+    "pydantic==2.8.2",
+    "python-multipart==0.0.9",
+    "openai>=1.0.0",
+    "requests>=2.31.0",
+    "torch",
+    "torchvision",
+    "faiss-cpu",
+    "imagehash",
+    "Pillow",
+    "sqlalchemy",
+    "numpy",
+    "scipy",
+]
+
+[project.entry-points."openenv.environments"]
+daps-env = "app:app"
+
+[tool.setuptools]
+packages = ["db", "core", "scripts"]
+py-modules = ["app", "models", "environment", "inference"]
