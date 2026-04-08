@@ -25,12 +25,18 @@ import requests
 from openai import OpenAI
 
 # ─────────────────────────────────────────────
-# Config from environment variables (required by hackathon)
+# Config from environment variables (Required by Sample Script)
 # ─────────────────────────────────────────────
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:7860")
-MODEL_NAME   = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", os.environ.get("HF_TOKEN", ""))
+# Mandatory variables from sample
+LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
+IMAGE_NAME = os.getenv("IMAGE_NAME") # If using docker image
+HF_TOKEN = os.getenv("HF_TOKEN")
+API_KEY = HF_TOKEN or os.getenv("API_KEY")
+
+# Defaults must reflect active inference setup as per sample
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 
 # The deployed environment URL (HF Spaces). Falls back to localhost.
 ENV_BASE_URL = os.environ.get("ENV_BASE_URL", "http://localhost:7860")
@@ -38,6 +44,7 @@ ENV_BASE_URL = os.environ.get("ENV_BASE_URL", "http://localhost:7860")
 # Number of full episodes to run for the baseline evaluation
 NUM_EPISODES = 3
 TASK_NAME = os.environ.get("MY_ENV_V4_TASK", "digital_asset_protection")
+BENCHMARK = os.getenv("MY_ENV_V4_BENCHMARK", "daps-env")
 SUCCESS_SCORE_THRESHOLD = 0.5
 
 
@@ -46,7 +53,7 @@ SUCCESS_SCORE_THRESHOLD = 0.5
 # ─────────────────────────────────────────────
 
 llm_client = OpenAI(
-    api_key=OPENAI_API_KEY or "placeholder",
+    api_key=API_KEY or "placeholder",
     base_url=API_BASE_URL,
 )
 
@@ -339,10 +346,10 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True, start_
         clamped_reward = max(0.0, min(1.0, reward))
         step_rewards.append(clamped_reward)
 
-        # [STEP] log for automated grading
+        # [STEP] log for automated grading (Strict Format)
         err_msg = "null" # no strict error tracking implemented yet
-        done_str = "true" if done else "false"
-        print(f"[STEP] step={global_step} action={action_type} reward={clamped_reward:.2f} done={done_str} error={err_msg}", flush=True)
+        done_val = str(done).lower()
+        print(f"[STEP] step={global_step} action={action_type} reward={clamped_reward:.2f} done={done_val} error={err_msg}", flush=True)
 
         # Record in memory
         memory.record(obs, action_type, reward)
@@ -434,8 +441,8 @@ def main():
     except Exception:
         pass
 
-    BENCHMARK = "daps-env"
-    print(f"[START] task={TASK_NAME} env={BENCHMARK} model={MODEL_NAME}", flush=True)
+    BENCHMARK_VAL = BENCHMARK
+    print(f"[START] task={TASK_NAME} env={BENCHMARK_VAL} model={MODEL_NAME}", flush=True)
 
     # Run episodes
     all_stats = []
@@ -486,11 +493,14 @@ def main():
         json.dump(scores, f, indent=2)
     print(f"[DEBUG] Scores written to baseline_scores.json")
 
-    # [END] log for automated grading
+    # [END] log for automated grading (Strict Format)
     rewards_str = ",".join(f"{r:.2f}" for r in global_step_rewards)
-    success_str = "true" if avg_accuracy >= SUCCESS_SCORE_THRESHOLD else "false"
+    success_val = str(avg_accuracy >= SUCCESS_SCORE_THRESHOLD).lower()
     
-    print(f"[END] success={success_str} steps={global_step_count} score={avg_accuracy:.2f} rewards={rewards_str}")
+    # Score must be clamped [0, 1] and formatted to 3 decimal places as per sample log_end
+    final_score = min(max(avg_accuracy, 0.0), 1.0)
+    
+    print(f"[END] success={success_val} steps={global_step_count} score={final_score:.3f} rewards={rewards_str}")
 
     # Exit 0 on success (required for automated evaluation)
     sys.exit(0)
