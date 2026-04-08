@@ -76,7 +76,8 @@ app.add_middleware(
 
 # Serves images from the static directory
 from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="static"), name="static")
+_DIR = Path(__file__).parent
+app.mount("/static", StaticFiles(directory=str(_DIR / "static")), name="static")
 
 # Single environment instance (concurrent sessions disabled for hackathon)
 env = DAPSEnvironment()
@@ -348,7 +349,7 @@ def get_benchmarks():
     comparing Vanguard Fusion vs. Traditional Hashing.
     """
     try:
-        with open("static/benchmarks.json", "r") as f:
+        with open(_DIR / "static" / "benchmarks.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
         return {"error": "Benchmark data not yet generated."}
