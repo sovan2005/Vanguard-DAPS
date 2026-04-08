@@ -37,6 +37,8 @@ ENV_BASE_URL = os.environ.get("ENV_BASE_URL", "http://localhost:7860")
 
 # Number of full episodes to run for the baseline evaluation
 NUM_EPISODES = 3
+TASK_NAME = os.environ.get("MY_ENV_V4_TASK", "digital_asset_protection")
+SUCCESS_SCORE_THRESHOLD = 0.5
 
 
 # ─────────────────────────────────────────────
@@ -291,11 +293,11 @@ def llm_decision(obs: dict, memory: EpisodeMemory) -> tuple[str, float, str]:
 # Episode runner
 # ─────────────────────────────────────────────
 
-def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dict:
+def run_episode(episode_num: int, seed: int = None, use_llm: bool = True, start_step: int = 0) -> tuple[dict, list]:
     """Run a single complete episode. Returns episode stats."""
-    print(f"\n{'='*60}")
-    print(f"Episode {episode_num + 1}  (seed={seed})")
-    print(f"{'='*60}")
+    print(f"[DEBUG] {'='*60}")
+    print(f"[DEBUG] Episode {episode_num + 1}  (seed={seed})")
+    print(f"[DEBUG] {'='*60}")
 
     obs = env_reset(seed=seed)
     memory = EpisodeMemory()
@@ -305,10 +307,13 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
     decisions = []
     done = False
 
+    step_rewards = []
+
     while not done:
         step_count += 1
-        print(f"\n  Step {step_count} | Task: {obs['task_id']} | Diff: {obs['difficulty']}")
-        print(f"    SSCD={obs['sscd_score']:.3f}  pHash={obs['phash_distance']}  "
+        global_step = start_step + step_count
+        print(f"[DEBUG] Step {step_count} | Task: {obs['task_id']} | Diff: {obs['difficulty']}")
+        print(f"[DEBUG]   SSCD={obs['sscd_score']:.3f}  pHash={obs['phash_distance']}  "
               f"Mod={obs['modification_type']}  "
               f"MetaC={obs.get('metadata_consistency', '?')}  "
               f"SrcRep={obs.get('source_reputation', '?')}  "
@@ -320,7 +325,7 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
         else:
             action_type, confidence, reason = rule_based_decision(obs, memory)
 
-        print(f"    → {action_type}  (conf={confidence:.2f})  reason: {reason}")
+        print(f"[DEBUG]   → {action_type}  (conf={confidence:.2f})  reason: {reason}")
 
         if action_type == "REQUEST_GEMINI":
             gemini_calls += 1
@@ -330,15 +335,14 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
         reward = result["reward"]
         done = result["done"]
 
+        # Clamp reward to [0.0, 1.0] for logging and tracking
+        clamped_reward = max(0.0, min(1.0, reward))
+        step_rewards.append(clamped_reward)
+
         # [STEP] log for automated grading
-        step_data = {
-            "step": step_count,
-            "task_id": obs.get("task_id"),
-            "action": action_type,
-            "reward": reward,
-            "done": done
-        }
-        print(f"[STEP] {json.dumps(step_data)}")
+        err_msg = "null" # no strict error tracking implemented yet
+        done_str = "true" if done else "false"
+        print(f"[STEP] step={global_step} action={action_type} reward={clamped_reward:.2f} done={done_str} error={err_msg}", flush=True)
 
         # Record in memory
         memory.record(obs, action_type, reward)
@@ -346,25 +350,25 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
         obs = result["observation"]
         episode_reward += reward
         decisions.append(action_type)
-        print(f"    Reward: {reward:+.3f}  | Episode total: {episode_reward:+.3f}")
+        print(f"[DEBUG]   Reward: {reward:+.3f} (clamped: {clamped_reward:.2f}) | Episode total: {episode_reward:+.3f}")
 
         # Show evidence if available
         if "evidence" in result.get("info", {}):
             ev = result["info"]["evidence"]
             correct_str = "✅" if ev.get("correct") else "❌"
-            print(f"    {correct_str} Ground truth: {ev.get('ground_truth')}")
+            print(f"[DEBUG]   {correct_str} Ground truth: {ev.get('ground_truth')}")
 
         # Show episode summary if done
         if done and "episode_summary" in result.get("info", {}):
             summary = result["info"]["episode_summary"]
-            print(f"\n  📊 Episode Summary:")
-            print(f"     Grade: {summary.get('performance_grade', '?')}")
-            print(f"     Accuracy: {summary.get('accuracy', 0):.0%}")
-            print(f"     Gemini efficiency: {summary.get('gemini_efficiency', 0):.0%}")
-            print(f"     Reward by difficulty: {summary.get('reward_per_difficulty', {})}")
+            print(f"[DEBUG] 📊 Episode Summary:")
+            print(f"[DEBUG]    Grade: {summary.get('performance_grade', '?')}")
+            print(f"[DEBUG]    Accuracy: {summary.get('accuracy', 0):.0%}")
+            print(f"[DEBUG]    Gemini efficiency: {summary.get('gemini_efficiency', 0):.0%}")
+            print(f"[DEBUG]    Reward by difficulty: {summary.get('reward_per_difficulty', {})}")
 
         if done:
-            print(f"\n  Episode complete!")
+            print(f"[DEBUG] Episode complete!")
             # Reset Gemini state for next task
             memory.reset_gemini()
             break
@@ -389,10 +393,10 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
         "decisions": decisions,
     }
 
-    print(f"\n  Stats: reward={stats['total_reward']}  correct={stats['correct_decisions']}/9  "
+    print(f"[DEBUG] Stats: reward={stats['total_reward']}  correct={stats['correct_decisions']}/9  "
           f"FP={stats['false_positives']}  FN={stats['false_negatives']}  "
           f"acc={stats['accuracy']:.0%}")
-    return stats
+    return stats, step_rewards
 
 
 # ─────────────────────────────────────────────
@@ -400,24 +404,24 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
 # ─────────────────────────────────────────────
 
 def main():
-    print("=" * 60)
-    print("DAPSEnv — Digital Asset Protection System")
-    print("Baseline Inference Agent v2.0")
-    print("=" * 60)
-    print(f"  ENV_BASE_URL : {ENV_BASE_URL}")
-    print(f"  API_BASE_URL : {API_BASE_URL}")
-    print(f"  MODEL_NAME   : {MODEL_NAME}")
-    print(f"  NUM_EPISODES : {NUM_EPISODES}")
+    print("[DEBUG] " + "=" * 60)
+    print("[DEBUG] DAPSEnv — Digital Asset Protection System")
+    print("[DEBUG] Baseline Inference Agent v2.0")
+    print("[DEBUG] " + "=" * 60)
+    print(f"[DEBUG] ENV_BASE_URL : {ENV_BASE_URL}")
+    print(f"[DEBUG] API_BASE_URL : {API_BASE_URL}")
+    print(f"[DEBUG] MODEL_NAME   : {MODEL_NAME}")
+    print(f"[DEBUG] NUM_EPISODES : {NUM_EPISODES}")
 
     # Check environment is reachable
     try:
         resp = requests.get(f"{ENV_BASE_URL}/health", timeout=10)
         resp.raise_for_status()
         health = resp.json()
-        print(f"\n  Environment: {health.get('environment', '?')} v{health.get('version', '?')}")
-        print(f"  Health: OK ✅")
+        print(f"[DEBUG] Environment: {health.get('environment', '?')} v{health.get('version', '?')}")
+        print(f"[DEBUG] Health: OK ✅")
     except Exception as e:
-        print(f"\n  ERROR: Cannot reach environment at {ENV_BASE_URL}: {e}")
+        print(f"[DEBUG] ERROR: Cannot reach environment at {ENV_BASE_URL}: {e}")
         sys.exit(1)
 
     # Show environment info if available
@@ -425,45 +429,51 @@ def main():
         resp = requests.get(f"{ENV_BASE_URL}/info", timeout=10)
         if resp.status_code == 200:
             info = resp.json()
-            print(f"  Tasks: {info.get('task_count', '?')} variants")
-            print(f"  Features: {', '.join(info.get('unique_features', [])[:3])}...")
+            print(f"[DEBUG] Tasks: {info.get('task_count', '?')} variants")
+            print(f"[DEBUG] Features: {', '.join(info.get('unique_features', [])[:3])}...")
     except Exception:
         pass
 
-    print("[START]")
+    BENCHMARK = "daps-env"
+    print(f"[START] task={TASK_NAME} env={BENCHMARK} model={MODEL_NAME}", flush=True)
 
     # Run episodes
     all_stats = []
+    global_step_rewards = []
+    global_step_count = 0
     start = time.time()
 
     for i in range(NUM_EPISODES):
-        stats = run_episode(
+        stats, step_rewards = run_episode(
             episode_num=i,
             seed=42 + i,
             use_llm=bool(API_BASE_URL and API_BASE_URL != ENV_BASE_URL),
+            start_step=global_step_count,
         )
         all_stats.append(stats)
+        global_step_rewards.extend(step_rewards)
+        global_step_count += stats["steps"]
 
     elapsed = time.time() - start
 
     # Summary
-    print(f"\n{'='*60}")
-    print("BASELINE SUMMARY")
-    print(f"{'='*60}")
+    print(f"[DEBUG] {'='*60}")
+    print("[DEBUG] BASELINE SUMMARY")
+    print(f"[DEBUG] {'='*60}")
     avg_reward = sum(s["total_reward"] for s in all_stats) / len(all_stats)
     avg_correct = sum(s["correct_decisions"] for s in all_stats) / len(all_stats)
     avg_accuracy = sum(s["accuracy"] for s in all_stats) / len(all_stats)
     total_fp = sum(s["false_positives"] for s in all_stats)
     total_fn = sum(s["false_negatives"] for s in all_stats)
 
-    print(f"Episodes        : {NUM_EPISODES}")
-    print(f"Avg reward      : {avg_reward:.3f}")
-    print(f"Avg correct     : {avg_correct:.1f} / 9 tasks")
-    print(f"Avg accuracy    : {avg_accuracy:.0%}")
-    print(f"False positives : {total_fp} (total)")
-    print(f"False negatives : {total_fn} (total)")
-    print(f"Elapsed         : {elapsed:.1f}s")
-    print(f"\nAll episode rewards: {[s['total_reward'] for s in all_stats]}")
+    print(f"[DEBUG] Episodes        : {NUM_EPISODES}")
+    print(f"[DEBUG] Avg reward      : {avg_reward:.3f}")
+    print(f"[DEBUG] Avg correct     : {avg_correct:.1f} / 9 tasks")
+    print(f"[DEBUG] Avg accuracy    : {avg_accuracy:.0%}")
+    print(f"[DEBUG] False positives : {total_fp} (total)")
+    print(f"[DEBUG] False negatives : {total_fn} (total)")
+    print(f"[DEBUG] Elapsed         : {elapsed:.1f}s")
+    print(f"[DEBUG] All episode rewards: {[s['total_reward'] for s in all_stats]}")
 
     # Write scores to file (for automated evaluation)
     scores = {
@@ -474,15 +484,13 @@ def main():
     }
     with open("baseline_scores.json", "w") as f:
         json.dump(scores, f, indent=2)
-    print(f"\nScores written to baseline_scores.json")
+    print(f"[DEBUG] Scores written to baseline_scores.json")
 
     # [END] log for automated grading
-    final_data = {
-        "avg_reward": round(avg_reward, 4),
-        "avg_accuracy": round(avg_accuracy, 4),
-        "total_episodes": NUM_EPISODES
-    }
-    print(f"[END] {json.dumps(final_data)}")
+    rewards_str = ",".join(f"{r:.2f}" for r in global_step_rewards)
+    success_str = "true" if avg_accuracy >= SUCCESS_SCORE_THRESHOLD else "false"
+    
+    print(f"[END] success={success_str} steps={global_step_count} score={avg_accuracy:.2f} rewards={rewards_str}")
 
     # Exit 0 on success (required for automated evaluation)
     sys.exit(0)

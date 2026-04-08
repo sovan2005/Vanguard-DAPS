@@ -650,14 +650,14 @@ async def analyze_pair(reference: UploadFile = File(...), query: UploadFile = Fi
     Forensic Laboratory: Compare Reference vs investigation Query.
     Registers the Reference into the secure database if not already present.
     """
-    allowed = {".jpg", ".jpeg", ".png"}
-    ref_ext = Path(reference.filename).suffix.lower()
-    que_ext = Path(query.filename).suffix.lower()
-    
-    if ref_ext not in allowed or que_ext not in allowed:
-        raise HTTPException(status_code=400, detail="Strict Compliance Error: Only JPG/PNG supported.")
-
     try:
+        allowed = {".jpg", ".jpeg", ".png"}
+        ref_ext = Path(reference.filename).suffix.lower() if reference.filename else ""
+        que_ext = Path(query.filename).suffix.lower() if query.filename else ""
+        
+        if ref_ext not in allowed or que_ext not in allowed:
+            raise HTTPException(status_code=400, detail="Strict Compliance Error: Only JPG/PNG supported.")
+
         # 1. Process Reference
         ref_content = await reference.read()
         ref_img = Image.open(io.BytesIO(ref_content)).convert("RGB")

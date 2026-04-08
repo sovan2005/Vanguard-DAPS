@@ -125,10 +125,10 @@ reward:
   partial_flag_mismatch: +0.5       # FLAG_SOFT when FLAG_HARD expected (or vice versa)
   false_positive: +0.2              # Flagged an original asset (small partial credit for caution)
   false_negative: 0.0               # Cleared a confirmed infringement (no credit)
-  request_gemini_cost: -0.1         # Cost per Gemini Vision escalation call
+  request_gemini_cost: 0.0          # Gemini Vision escalation call cost (changed to 0 to strictly obey 0.0-1.0 range)
   episode_bonus_8_or_9_correct: +1.0  # Bonus when 8 or 9 tasks are correct
   episode_bonus_7_correct: +0.5     # Bonus when 7 tasks are correct
-  per_step_range: [-0.1, 1.0]       # Min/max reward per individual step
+  per_step_range: [0.0, 1.0]        # Min/max reward per individual step
 
 environment:
   max_steps_per_episode: 18

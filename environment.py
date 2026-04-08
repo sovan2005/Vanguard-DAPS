@@ -192,8 +192,8 @@ def compute_reward(action: DAPSAction, ground_truth: ActionType, difficulty: str
         "difficulty": difficulty, "reward_breakdown": {}, "confidence_used": action.confidence,
     }
     if action.action_type == ActionType.REQUEST_GEMINI:
-        info["reward_breakdown"]["gemini_cost"] = -0.1
-        return -0.1, info
+        info["reward_breakdown"]["gemini_cost"] = 0.0
+        return 0.0, info
 
     # 0.0–1.0 Normalized Scoring (Hackathon Mandatory Requirement)
     if action.action_type in (ActionType.FLAG_HARD, ActionType.FLAG_SOFT) and ground_truth in (ActionType.FLAG_HARD, ActionType.FLAG_SOFT):
@@ -302,9 +302,9 @@ class DAPSEnvironment:
                 "gemini_verdict": gemini_result["verdict"], "gemini_similarity": gemini_result["gemini_similarity"],
             })
             self._current_obs = enriched_obs
-            reward = -0.1
+            reward = 0.0
             self._state.total_reward = round(self._state.total_reward + reward, 3)
-            info = {"gemini_result": gemini_result, "reward_breakdown": {"gemini_cost": -0.1}}
+            info = {"gemini_result": gemini_result, "reward_breakdown": {"gemini_cost": 0.0}}
             return DAPSStepResult(observation=enriched_obs, reward=reward, done=False, info=info)
 
         self._total_terminal_actions += 1

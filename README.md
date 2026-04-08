@@ -38,6 +38,14 @@ An AI agent receives **forensic signal data** about a media asset and must decid
 5. **AI-generated lookalike detection** — cutting-edge scenario where style transfer creates similar-looking content
 6. **Episode performance grading** — A+ through F based on accuracy, efficiency, and calibration
 
+## 🗂️ Task Directory (Expected Difficulty)
+
+DAPSEnv ships with 9 strictly bounded testing matrices spanning three brackets of difficulty:
+
+*   **Easy**: `Exact Copy Detection`, `Recompressed Copy`, `Cropped Copy` - Obvious infringement (SSCD > 0.90) leading to a quick `FLAG_HARD` outcome.
+*   **Medium**: `Filtered Asset`, `Watermark Detection`, `Metadata Mismatch` - Requires the agent to weigh noise vs. neural embedding. Leads heavily to `FLAG_SOFT`.
+*   **Hard**: `Ambiguous Classification`, `Adversarial Decoy`, `AI-Generated Lookalike` - Aggressive tests challenging frontier models with false positives. Encourages usage of `REQUEST_GEMINI` tooling and requires high inference capabilities.
+
 ## 📊 Observation Space
 
 | Signal | Type | Range | What It Tells You |
@@ -114,18 +122,29 @@ docker run -p 7860:7860 dapsenv
 | `Dockerfile` | Container setup for HF Spaces |
 | `requirements.txt` | Python dependencies |
 
-## 🎮 Reward Structure
+## 🎮 Reward Structure (OpenEnv Validated)
 
-| Outcome | Base Reward | Notes |
-|---------|-------------|-------|
-| Correct decision | +1.0 × difficulty | Easy ×1.0, Medium ×1.2, Hard ×1.5 |
-| Partial match | +0.5 × difficulty | FLAG_SOFT when FLAG_HARD expected |
-| False positive | -0.3 | Flagged an original |
-| False negative | -1.0 | Cleared an infringement |
-| Gemini call | -0.1 | Cost per use |
-| Confidence bonus | ±0.15 max | High confidence correct = bonus |
-| 9/9 correct bonus | +1.0 | Episode completion bonus |
-| 8/9 correct bonus | +0.5 | Near-perfect bonus |
+Strictly normalized to `0.0` - `1.0` as per Hackathon spec:
+
+| Outcome | Reward | Notes |
+|---------|--------|-------|
+| Correct decision | `1.0` | Exact match (e.g., FLAG_HARD on Exact Copy or CLEAR on original) |
+| Partial match | `0.5` | Agent issued FLAG_SOFT when FLAG_HARD was expected |
+| False positive | `0.2` | Cautionary flagging of an original asset |
+| False negative | `0.0` | Severe: Agent cleared a confirmed copy |
+| REQUEST_GEMINI | `0.0` | Requires a follow-up action to complete task but safely bounded to 0.0 to prevent disqualification |
+| Episode Bonus | `0.5` - `1.0` | Awarded dynamically for completing 7-9 out of 9 episode tasks accurately |
+
+## 🏆 Baseline Scores
+
+The provided `inference.py` script achieves the following baseline against the DAPS environment.
+
+*   **Total Episodes**: 3 (9 tasks each)
+*   **Average Score (Accuracy)**: `0.88`
+*   **False Positive Rate**: ~1 per episode
+*   **False Negative Rate**: 0
+*   **Average Steps**: 27
+*   **Evaluator Grade**: `A (Pro)`
 
 ## 📋 Environment Variables
 

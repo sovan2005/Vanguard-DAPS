@@ -1,66 +1,65 @@
 {
-  "avg_reward": 11.4297,
-  "avg_accuracy": 0.926,
+  "avg_reward": 7.5,
+  "avg_accuracy": 0.667,
   "episodes": [
     {
       "episode": 1,
-      "total_reward": 11.951,
-      "steps": 10,
-      "gemini_calls": 1,
-      "correct_decisions": 9,
+      "total_reward": 7.5,
+      "steps": 9,
+      "gemini_calls": 0,
+      "correct_decisions": 6,
       "false_positives": 0,
       "false_negatives": 0,
-      "accuracy": 1.0,
-      "confidence_calibration": 0.852,
+      "accuracy": 0.667,
+      "confidence_calibration": 0.617,
       "decisions": [
+        "FLAG_HARD",
+        "FLAG_HARD",
+        "FLAG_SOFT",
+        "FLAG_HARD",
+        "FLAG_SOFT",
+        "FLAG_SOFT",
         "CLEAR",
-        "REQUEST_GEMINI",
-        "CLEAR",
-        "FLAG_SOFT",
         "FLAG_HARD",
-        "FLAG_HARD",
-        "FLAG_HARD",
-        "FLAG_SOFT",
-        "FLAG_SOFT",
-        "FLAG_SOFT"
+        "FLAG_HARD"
       ]
     },
     {
       "episode": 2,
-      "total_reward": 11.181,
+      "total_reward": 7.5,
       "steps": 9,
       "gemini_calls": 0,
-      "correct_decisions": 8,
+      "correct_decisions": 6,
       "false_positives": 0,
       "false_negatives": 0,
-      "accuracy": 0.889,
-      "confidence_calibration": 0.774,
+      "accuracy": 0.667,
+      "confidence_calibration": 0.617,
       "decisions": [
         "FLAG_HARD",
         "FLAG_SOFT",
         "FLAG_SOFT",
         "FLAG_SOFT",
+        "FLAG_HARD",
+        "FLAG_HARD",
         "CLEAR",
         "FLAG_HARD",
-        "FLAG_SOFT",
-        "FLAG_SOFT",
         "FLAG_HARD"
       ]
     },
     {
       "episode": 3,
-      "total_reward": 11.157,
+      "total_reward": 7.5,
       "steps": 9,
       "gemini_calls": 0,
-      "correct_decisions": 8,
+      "correct_decisions": 6,
       "false_positives": 0,
       "false_negatives": 0,
-      "accuracy": 0.889,
-      "confidence_calibration": 0.766,
+      "accuracy": 0.667,
+      "confidence_calibration": 0.617,
       "decisions": [
-        "FLAG_SOFT",
-        "FLAG_SOFT",
+        "FLAG_HARD",
         "CLEAR",
+        "FLAG_HARD",
         "FLAG_SOFT",
         "FLAG_SOFT",
         "FLAG_HARD",
@@ -70,5 +69,5 @@
       ]
     }
   ],
-  "elapsed_seconds": 74.4
+  "elapsed_seconds": 486.0
 }
