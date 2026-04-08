@@ -30,7 +30,7 @@ from openai import OpenAI
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:7860")
 MODEL_NAME   = os.environ.get("MODEL_NAME", "gpt-4o-mini")
-HF_TOKEN     = os.environ.get("HF_TOKEN", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", os.environ.get("HF_TOKEN", ""))
 
 # The deployed environment URL (HF Spaces). Falls back to localhost.
 ENV_BASE_URL = os.environ.get("ENV_BASE_URL", "http://localhost:7860")
@@ -44,7 +44,7 @@ NUM_EPISODES = 3
 # ─────────────────────────────────────────────
 
 llm_client = OpenAI(
-    api_key=HF_TOKEN or "placeholder",
+    api_key=OPENAI_API_KEY or "placeholder",
     base_url=API_BASE_URL,
 )
 
@@ -330,6 +330,16 @@ def run_episode(episode_num: int, seed: int = None, use_llm: bool = True) -> dic
         reward = result["reward"]
         done = result["done"]
 
+        # [STEP] log for automated grading
+        step_data = {
+            "step": step_count,
+            "task_id": obs.get("task_id"),
+            "action": action_type,
+            "reward": reward,
+            "done": done
+        }
+        print(f"[STEP] {json.dumps(step_data)}")
+
         # Record in memory
         memory.record(obs, action_type, reward)
 
@@ -420,6 +430,8 @@ def main():
     except Exception:
         pass
 
+    print("[START]")
+
     # Run episodes
     all_stats = []
     start = time.time()
@@ -463,6 +475,14 @@ def main():
     with open("baseline_scores.json", "w") as f:
         json.dump(scores, f, indent=2)
     print(f"\nScores written to baseline_scores.json")
+
+    # [END] log for automated grading
+    final_data = {
+        "avg_reward": round(avg_reward, 4),
+        "avg_accuracy": round(avg_accuracy, 4),
+        "total_episodes": NUM_EPISODES
+    }
+    print(f"[END] {json.dumps(final_data)}")
 
     # Exit 0 on success (required for automated evaluation)
     sys.exit(0)

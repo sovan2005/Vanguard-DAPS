@@ -362,7 +362,7 @@ def list_tasks():
                 "Expected action: FLAG_HARD."
             ),
             "difficulty": "easy",
-            "reward_range": [0.0, 1.15],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_easy_task",
         },
         {
@@ -373,7 +373,7 @@ def list_tasks():
                 "SSCD > 0.90, pHash < 6. Expected action: FLAG_HARD."
             ),
             "difficulty": "easy",
-            "reward_range": [0.0, 1.15],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_easy_task",
         },
         {
@@ -384,7 +384,7 @@ def list_tasks():
                 "Still clearly a copy. Expected action: FLAG_HARD."
             ),
             "difficulty": "easy",
-            "reward_range": [0.0, 1.15],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_easy_task",
         },
         {
@@ -395,7 +395,7 @@ def list_tasks():
                 "Agent must weigh both signals. Expected action: FLAG_SOFT."
             ),
             "difficulty": "medium",
-            "reward_range": [0.0, 1.38],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_medium_task",
         },
         {
@@ -406,7 +406,7 @@ def list_tasks():
                 "deep embedding still recognizable. Expected action: FLAG_SOFT."
             ),
             "difficulty": "medium",
-            "reward_range": [0.0, 1.38],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_medium_task",
         },
         {
@@ -418,7 +418,7 @@ def list_tasks():
                 "Expected action: FLAG_SOFT."
             ),
             "difficulty": "medium",
-            "reward_range": [0.0, 1.38],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_medium_task",
         },
         {
@@ -429,7 +429,7 @@ def list_tasks():
                 "Optimal: call REQUEST_GEMINI first, then decide."
             ),
             "difficulty": "hard",
-            "reward_range": [-0.1, 1.65],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_hard_task",
         },
         {
@@ -441,7 +441,7 @@ def list_tasks():
                 "uploaded BEFORE reference. Expected action: CLEAR."
             ),
             "difficulty": "hard",
-            "reward_range": [-0.45, 1.65],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_hard_task",
         },
         {
@@ -453,7 +453,7 @@ def list_tasks():
                 "Cutting-edge scenario. Expected action: FLAG_SOFT."
             ),
             "difficulty": "hard",
-            "reward_range": [-0.1, 1.65],
+            "reward_range": [0.0, 1.0],
             "grader": "grade_hard_task",
         },
     ])

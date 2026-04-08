@@ -195,44 +195,31 @@ def compute_reward(action: DAPSAction, ground_truth: ActionType, difficulty: str
         info["reward_breakdown"]["gemini_cost"] = -0.1
         return -0.1, info
 
-    difficulty_multiplier = {"easy": 1.0, "medium": 1.2, "hard": 1.5}[difficulty]
-    confidence_modifier = 0.0
-
+    # 0.0–1.0 Normalized Scoring (Hackathon Mandatory Requirement)
     if action.action_type in (ActionType.FLAG_HARD, ActionType.FLAG_SOFT) and ground_truth in (ActionType.FLAG_HARD, ActionType.FLAG_SOFT):
         if action.action_type == ground_truth:
-            r = 1.0 * difficulty_multiplier
+            r = 1.0
             info["correct"] = True
-            confidence_modifier = 0.15 * (action.confidence - 0.5) * 2
+            # Max bonus 0.0 (already at 1.0)
         else:
-            r = 0.5 * difficulty_multiplier
+            r = 0.5
             info["correct"] = False
-        r += confidence_modifier
-        info["reward_breakdown"]["confidence_modifier"] = round(confidence_modifier, 4)
-        return round(r, 3), info
+        return r, info
 
     if action.action_type == ActionType.CLEAR and ground_truth == ActionType.CLEAR:
-        r = 1.0 * difficulty_multiplier
+        r = 1.0
         info["correct"] = True
-        confidence_modifier = 0.15 * (action.confidence - 0.5) * 2
-        r += confidence_modifier
-        info["reward_breakdown"]["confidence_modifier"] = round(confidence_modifier, 4)
-        return round(r, 3), info
+        return r, info
 
     if action.action_type == ActionType.CLEAR and ground_truth != ActionType.CLEAR:
-        r = -1.0
+        r = 0.0 # False Negative (Penalty is 0 score)
         info["correct"] = False
-        confidence_modifier = -0.15 * action.confidence
-        r += confidence_modifier
-        info["reward_breakdown"]["confidence_modifier"] = round(confidence_modifier, 4)
-        return round(r, 3), info
+        return r, info
 
     if action.action_type in (ActionType.FLAG_HARD, ActionType.FLAG_SOFT) and ground_truth == ActionType.CLEAR:
-        r = -0.3
+        r = 0.2 # False Positive (Small partial score for caution, but non-zero)
         info["correct"] = False
-        confidence_modifier = -0.15 * action.confidence
-        r += confidence_modifier
-        info["reward_breakdown"]["confidence_modifier"] = round(confidence_modifier, 4)
-        return round(r, 3), info
+        return r, info
     return 0.0, info
 
 def simulate_gemini_call(obs: DAPSObservation, ground_truth: ActionType) -> dict:

@@ -61,41 +61,41 @@ tasks:
   - id: easy_exact_copy
     name: "Exact Copy Detection"
     difficulty: easy
-    score_range: [0.0, 1.15]
+    score_range: [0.0, 1.0]
   - id: easy_recompressed
     name: "Recompressed Copy Detection"
     difficulty: easy
-    score_range: [0.0, 1.15]
+    score_range: [0.0, 1.0]
   - id: easy_cropped
     name: "Cropped Copy Detection"
     difficulty: easy
-    score_range: [0.0, 1.15]
+    score_range: [0.0, 1.0]
   # ── Medium tasks ──
   - id: medium_filtered
     name: "Filtered Asset Detection"
     difficulty: medium
-    score_range: [0.0, 1.38]
+    score_range: [0.0, 1.0]
   - id: medium_watermarked
     name: "Watermark Detection"
     difficulty: medium
-    score_range: [0.0, 1.38]
+    score_range: [0.0, 1.0]
   - id: medium_metadata_mismatch
     name: "Metadata Anomaly Detection"
     difficulty: medium
-    score_range: [0.0, 1.38]
+    score_range: [0.0, 1.0]
   # ── Hard tasks ──
   - id: hard_ambiguous
     name: "Ambiguous Asset Classification"
     difficulty: hard
-    score_range: [-0.1, 1.65]
+    score_range: [0.0, 1.0]
   - id: hard_adversarial_decoy
     name: "Adversarial Decoy (Agent-Under-Attack)"
     difficulty: hard
-    score_range: [-0.45, 1.65]
+    score_range: [0.0, 1.0]
   - id: hard_ai_generated
     name: "AI-Generated Lookalike Detection"
     difficulty: hard
-    score_range: [-0.1, 1.65]
+    score_range: [0.0, 1.0]
 
 action_space:
   type: categorical
