@@ -422,15 +422,21 @@
             font-size: 1rem;
         }
 
-        /* Service Record (History) */
-        .history-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-            overflow-y: auto;
-            max-height: 400px;
+        /* Small, sleek lab button */
+        .btn-lab {
+            height: 45px;
+            background: linear-gradient(45deg, var(--accent), #0077ff);
+            color: #000;
+            border: none;
+            margin: 15px auto;
+            width: fit-content;
+            padding: 0 30px;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            align-self: center;
         }
+        .btn-lab:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .history-item {
             background: rgba(0, 242, 255, 0.03);
@@ -820,30 +826,30 @@
                     </div>
                 </div>
 
-                <div id="lab-results" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                     <div class="intel-tile">
+                <div id="lab-results" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 15px; border: 1px solid var(--border);">
+                     <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Neural Similarity</div>
-                        <div class="hud-value" id="lab-val-sscd" style="color: var(--accent);">0.000</div>
+                        <div class="hud-value" id="lab-val-sscd" style="color: var(--accent); font-size: 1.4rem;">0.000</div>
                         <div class="hud-sub">DNA Concordance</div>
                      </div>
-                     <div class="intel-tile">
+                     <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Perceptual Match</div>
-                        <div class="hud-value" id="lab-val-phash">00</div>
+                        <div class="hud-value" id="lab-val-phash" style="font-size: 1.4rem;">00</div>
                         <div class="hud-sub">Structural Similarity</div>
                      </div>
-                     <div class="intel-tile">
+                     <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Metadata Check</div>
-                        <div class="hud-value" id="lab-val-meta">PASSED</div>
+                        <div class="hud-value" id="lab-val-meta" style="font-size: 1rem;">PASSED</div>
                         <div class="hud-sub">Consistency Audit</div>
                      </div>
-                     <div class="intel-tile" style="border-color: var(--warning);">
+                     <div class="intel-tile" style="min-height: 100px; border-color: var(--warning);">
                         <div class="hud-label">Risk Assessment</div>
-                        <div class="hud-value" id="lab-val-risk" style="color: var(--warning); font-size: 1.2rem;">CALCULATING</div>
+                        <div class="hud-value" id="lab-val-risk" style="color: var(--warning); font-size: 1.2rem;">--</div>
                         <div class="hud-sub">Vanguard Verdict</div>
                      </div>
                 </div>
 
-                <button class="btn-reboot" id="btn-lab-analyze" style="margin-bottom: 20px;" onclick="runPairAnalysis()">EXECUTE FORENSIC FUSION</button>
+                <button class="btn-lab" id="btn-lab-analyze" onclick="runPairAnalysis()">EXECUTE FORENSIC FUSION</button>
             </div>
 
             <!-- HUD MAIN VIEW (GAME) -->
@@ -1228,7 +1234,10 @@
                 const data = await res.json();
                 
                 if (data && data.metrics) {
-                    document.getElementById('lab-results').style.display = 'grid';
+                    console.log("Lab Results Received:", data.metrics);
+                    const resDiv = document.getElementById('lab-results');
+                    resDiv.style.display = 'grid'; // Ensure it's shown
+                    
                     const m = data.metrics;
                     
                     animateValue("lab-val-sscd", 0, m.neural_similarity, 1000, true);
@@ -1242,6 +1251,11 @@
                     document.getElementById('lab-val-risk').style.color = riskColor;
 
                     logEvent("Pairwise Forensic Analysis Complete: Reference Indexed.", 'reward');
+                    
+                    // Scroll to results
+                    resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    logEvent("Lab Analysis complete, but no metrics returned.", 'warning');
                 }
             } catch (err) {
                 logEvent(`Lab Failure: ${err.message}`, 'danger');
