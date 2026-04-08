@@ -723,14 +723,29 @@
         </header>
 
         <nav class="enterprise-nav">
-            <div class="nav-item active" onclick="switchTab('HUD')">MISSION CONTROL</div>
+            <div class="nav-item active" onclick="switchTab('LAB')">FORENSIC LABORATORY</div>
+            <div class="nav-item" onclick="switchTab('HUD')">INVESTIGATOR GAME</div>
             <div class="nav-item" onclick="switchTab('INTEL')">ENTERPRISE INTEL</div>
             <div class="nav-item" onclick="switchTab('LOGS')">SYSTEM LOGS</div>
         </nav>
 
         <aside class="sidebar-intel">
-            <!-- HUD SIDEBAR -->
-            <div class="view-item view-hud active">
+            <!-- LAB SIDEBAR (NEW) -->
+            <div class="view-item view-lab active">
+                <h2 style="margin-top: 10px;">Laboratory Controls</h2>
+                <div class="hud-card" style="border-color: var(--accent)">
+                    <div class="hud-label">Lab Status</div>
+                    <div class="hud-value" style="font-size: 1.4rem;">READY</div>
+                    <div class="hud-sub">Awaiting Pair Analysis</div>
+                </div>
+                <div class="hud-card" style="border-color: var(--safe); margin-top: 10px;">
+                    <div class="hud-label">Compliance Check</div>
+                    <div class="hud-sub">✓ JPG / PNG Support Only</div>
+                </div>
+            </div>
+
+            <!-- HUD SIDEBAR (GAME) -->
+            <div class="view-item view-hud" style="display:none">
                 <h2 style="margin-top: 10px;">Episode Metrics</h2>
                 <div class="hud-card" style="border-color: var(--accent)">
                     <div class="hud-label">Current Cycle</div>
@@ -776,8 +791,63 @@
         </aside>
 
         <section class="main-content">
-            <!-- HUD MAIN VIEW -->
-            <div class="view-item view-hud active" style="flex: 1; display: flex; flex-direction: column;">
+            <!-- LAB MAIN VIEW (NEW LANDING) -->
+            <div class="view-item view-lab active" style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+                <h2 style="color: var(--accent)">Forensic Pair Analysis Laboratory</h2>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 20px;">
+                    Directly compare an original reference asset against a suspected investigation query. 
+                    Neural DNA and Perceptual Match will be fused to assess liability.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1;">
+                    <div class="intel-tile" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-style: dashed; border-width: 2px;">
+                        <input type="file" id="labRefInput" hidden accept=".jpg,.jpeg,.png" onchange="previewLabImage(event, 'ref')">
+                        <div id="preview-ref" style="width: 100%; height: 100%; display: none; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                        <div id="upload-prompt-ref" style="text-align: center; cursor: pointer;" onclick="document.getElementById('labRefInput').click()">
+                            <div class="upload-icon" style="font-size: 3rem;">⊕</div>
+                            <div class="hud-label">ORIGINAL REFERENCE</div>
+                            <div class="hud-sub">Target for indexing</div>
+                        </div>
+                    </div>
+                    <div class="intel-tile" style="height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-style: dashed; border-width: 2px;">
+                        <input type="file" id="labQueryInput" hidden accept=".jpg,.jpeg,.png" onchange="previewLabImage(event, 'query')">
+                        <div id="preview-query" style="width: 100%; height: 100%; display: none; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+                        <div id="upload-prompt-query" style="text-align: center; cursor: pointer;" onclick="document.getElementById('labQueryInput').click()">
+                            <div class="upload-icon" style="font-size: 3rem;">⇗</div>
+                            <div class="hud-label">INVESTIGATION QUERY</div>
+                            <div class="hud-sub">Analyze for poison/modification</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lab-results" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                     <div class="intel-tile">
+                        <div class="hud-label">Neural Similarity</div>
+                        <div class="hud-value" id="lab-val-sscd" style="color: var(--accent);">0.000</div>
+                        <div class="hud-sub">DNA Concordance</div>
+                     </div>
+                     <div class="intel-tile">
+                        <div class="hud-label">Perceptual Match</div>
+                        <div class="hud-value" id="lab-val-phash">00</div>
+                        <div class="hud-sub">Structural Similarity</div>
+                     </div>
+                     <div class="intel-tile">
+                        <div class="hud-label">Metadata Check</div>
+                        <div class="hud-value" id="lab-val-meta">PASSED</div>
+                        <div class="hud-sub">Consistency Audit</div>
+                     </div>
+                     <div class="intel-tile" style="border-color: var(--warning);">
+                        <div class="hud-label">Risk Assessment</div>
+                        <div class="hud-value" id="lab-val-risk" style="color: var(--warning); font-size: 1.2rem;">CALCULATING</div>
+                        <div class="hud-sub">Vanguard Verdict</div>
+                     </div>
+                </div>
+
+                <button class="btn-reboot" id="btn-lab-analyze" style="margin-bottom: 20px;" onclick="runPairAnalysis()">EXECUTE FORENSIC FUSION</button>
+            </div>
+
+            <!-- HUD MAIN VIEW (GAME) -->
+            <div class="view-item view-hud" style="display:none; flex: 1; display: flex; flex-direction: column;">
                 <div class="observation-scroll">
                     <h2>Neural Observation Stream</h2>
                     <div class="intel-grid">
@@ -1118,6 +1188,67 @@
                 }
                 ov.style.display = 'none';
             }, 800);
+        }
+
+        async function previewLabImage(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(`upload-prompt-${type}`).style.display = 'none';
+                const prev = document.getElementById(`preview-${type}`);
+                prev.style.display = 'block';
+                prev.style.backgroundImage = `url(${e.target.result})`;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        async function runPairAnalysis() {
+            const ref = document.getElementById('labRefInput').files[0];
+            const query = document.getElementById('labQueryInput').files[0];
+            
+            if (!ref || !query) {
+                logEvent("Error: Both Reference and Query assets required for laboratory analysis.", 'danger');
+                return;
+            }
+
+            const btn = document.getElementById('btn-lab-analyze');
+            btn.innerText = "RUNNING FORENSIC FUSION...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('reference', ref);
+            formData.append('query', query);
+
+            try {
+                const res = await fetch('/analyze/pair', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (data && data.metrics) {
+                    document.getElementById('lab-results').style.display = 'grid';
+                    const m = data.metrics;
+                    
+                    animateValue("lab-val-sscd", 0, m.neural_similarity, 1000, true);
+                    animateValue("lab-val-phash", 256, m.perceptual_distance, 1000, false);
+                    document.getElementById('lab-val-meta').innerText = m.metadata_status;
+                    document.getElementById('lab-val-risk').innerText = m.risk_assessment;
+                    
+                    // Style by risk
+                    const riskColor = m.risk_assessment.includes('HIGH') ? 'var(--danger)' : 
+                                     (m.risk_assessment.includes('LOW') ? 'var(--safe)' : 'var(--warning)');
+                    document.getElementById('lab-val-risk').style.color = riskColor;
+
+                    logEvent("Pairwise Forensic Analysis Complete: Reference Indexed.", 'reward');
+                }
+            } catch (err) {
+                logEvent(`Lab Failure: ${err.message}`, 'danger');
+            } finally {
+                btn.innerText = "EXECUTE FORENSIC FUSION";
+                btn.disabled = false;
+            }
         }
 
         async function stepEnv(action) {

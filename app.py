@@ -41,6 +41,11 @@ from models import (
     EpisodeSummary,
     ModificationType
 )
+import hashlib
+from core.embedder import embedder
+from core.indexer import faiss_index
+from db.database import get_session
+from db.models import Asset
 from environment import DAPSEnvironment, assess_threat_level
 from core.detector import detector_engine
 
@@ -633,6 +638,77 @@ def enforce_decision(req: EnforcementRequest):
 # ─────────────────────────────────────────────
 # Entry point (for local testing)
 # ─────────────────────────────────────────────
+
+@app.post("/analyze/pair")
+async def analyze_pair(reference: UploadFile = File(...), query: UploadFile = File(...)):
+    """
+    Forensic Laboratory: Compare Reference vs investigation Query.
+    Registers the Reference into the secure database if not already present.
+    """
+    allowed = {".jpg", ".jpeg", ".png"}
+    ref_ext = Path(reference.filename).suffix.lower()
+    que_ext = Path(query.filename).suffix.lower()
+    
+    if ref_ext not in allowed or que_ext not in allowed:
+        raise HTTPException(status_code=400, detail="Strict Compliance Error: Only JPG/PNG supported.")
+
+    try:
+        # 1. Process Reference
+        ref_content = await reference.read()
+        ref_img = Image.open(io.BytesIO(ref_content)).convert("RGB")
+        ref_emb = embedder.process(ref_img)
+        ref_sha = hashlib.sha256(ref_content).hexdigest()
+
+        # 2. Process Query
+        que_content = await query.read()
+        que_img = Image.open(io.BytesIO(que_content)).convert("RGB")
+        que_emb = embedder.process(que_img)
+
+        # 3. DIRECT COMPARISON (Forensic Fusion)
+        # Neural Similarity (Dot product of normalized vectors)
+        sscd_sim = float(np.dot(ref_emb["sscd_vector"], que_emb["sscd_vector"]))
+        # Perceptual Match
+        phash_dist = embedder.phasher.hamming(ref_emb["phash_str"], que_emb["phash_str"])
+        
+        # Metadata Check (Simulated Forensic Audit)
+        meta_status = "PASSED"
+        if ref_img.size != que_img.size:
+             meta_status = "SIZE_MISMATCH"
+        
+        # 4. Register Reference into Database (Business Expansion)
+        session = get_session()
+        existing = session.query(Asset).filter(Asset.sha256 == ref_sha).first()
+        if not existing:
+            faiss_id = faiss_index.add(ref_emb["sscd_vector"], ref_sha)
+            new_asset = Asset(
+                id=str(uuid.uuid4()),
+                filename=reference.filename,
+                sha256=ref_sha,
+                phash=ref_emb["phash_str"],
+                faiss_id=faiss_id,
+                owner="USER_UPLOAD",
+                event_name="LAB_INSPECTION"
+            )
+            session.add(new_asset)
+            session.commit()
+            print(f"Asset Registered: {reference.filename} (ID: {faiss_id})")
+        session.close()
+
+        # 5. Risk Assessment
+        threat_level = assess_threat_level(sscd_sim, phash_dist, 0.5)
+
+        return {
+            "metrics": {
+                "neural_similarity": round(sscd_sim, 3),
+                "perceptual_distance": phash_dist,
+                "metadata_status": meta_status,
+                "risk_assessment": threat_level.value
+            },
+            "message": "Forensic Pair Analysis Complete. Reference asset indexed for future scans."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lab Analysis Failed: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn
