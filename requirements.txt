@@ -5,7 +5,9 @@ python-multipart==0.0.9
 openai>=1.0.0
 requests>=2.31.0
 
-# ML Dependencies (Torch is handled in Dockerfile for CPU-only)
+# ML Dependencies (Torch is handled in Dockerfile for CPU-only, but needed for local envs)
+torch
+torchvision
 faiss-cpu
 imagehash
 Pillow

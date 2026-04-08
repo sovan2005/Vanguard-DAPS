@@ -18,6 +18,7 @@ Endpoints:
 import sys
 import os
 import time
+import json
 
 # Ensure local imports work in the container
 sys.path.insert(0, os.path.dirname(__file__))
@@ -47,7 +48,7 @@ from core.embedder import embedder
 from core.indexer import faiss_index
 from db.database import get_session
 from db.models import Asset
-from environment import DAPSEnvironment, assess_threat_level
+from environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
 from core.detector import detector_engine
 
 
@@ -152,6 +153,9 @@ class InfoResponse(BaseModel):
     task_count: int
     action_space: list[str]
     observation_fields: list[str]
+    reward_range: Optional[list[float]] = None
+    difficulty_levels: Optional[list[str]] = None
+    unique_features: Optional[list[str]] = None
 
 
 class EnforcementRequest(BaseModel):
@@ -489,7 +493,7 @@ def info():
             "source_reputation", "gemini_verdict", "gemini_similarity",
             "task_id", "step_in_episode", "difficulty", "threat_level",
         ],
-        reward_range=[-1.15, 1.65],
+        reward_range=[-0.1, 1.0],
         difficulty_levels=["easy", "medium", "hard"],
         unique_features=[
             "Confidence-weighted reward shaping",

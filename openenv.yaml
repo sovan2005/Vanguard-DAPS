@@ -104,7 +104,7 @@ action_space:
 observation_space:
   # Core signals
   sscd_score: {type: float, range: [0.0, 1.0]}
-  phash_distance: {type: int, range: [0, 64]}
+  phash_distance: {type: int, range: [0, 256]}
   modification_type: {type: categorical, values: [NONE, CROP, FILTER, WATERMARK, COMPOSITE, RECOMPRESSION, AI_GENERATED, UNKNOWN]}
   modification_confidence: {type: float, range: [0.0, 1.0]}
   # Context
@@ -121,21 +121,14 @@ observation_space:
   gemini_similarity: {type: float, range: [0.0, 1.0], optional: true}
 
 reward:
-  correct_flag_hard: +1.0
-  correct_flag_soft: +1.0
-  correct_clear: +1.0
-  partial_flag_mismatch: +0.5
-  false_positive: -0.3
-  false_negative: -1.0
-  request_gemini_cost: -0.1
-  confidence_bonus_max: +0.15
-  confidence_penalty_max: -0.15
-  episode_bonus_9_correct: +1.0
-  episode_bonus_8_correct: +0.5
-  difficulty_multiplier:
-    easy: 1.0
-    medium: 1.2
-    hard: 1.5
+  correct_decision: +1.0            # CLEAR, FLAG_SOFT, or FLAG_HARD exactly matching ground truth
+  partial_flag_mismatch: +0.5       # FLAG_SOFT when FLAG_HARD expected (or vice versa)
+  false_positive: +0.2              # Flagged an original asset (small partial credit for caution)
+  false_negative: 0.0               # Cleared a confirmed infringement (no credit)
+  request_gemini_cost: -0.1         # Cost per Gemini Vision escalation call
+  episode_bonus_8_or_9_correct: +1.0  # Bonus when 8 or 9 tasks are correct
+  episode_bonus_7_correct: +0.5     # Bonus when 7 tasks are correct
+  per_step_range: [-0.1, 1.0]       # Min/max reward per individual step
 
 environment:
   max_steps_per_episode: 18

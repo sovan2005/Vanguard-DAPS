@@ -232,6 +232,18 @@ EASY_GENERATORS = [_make_easy_task_exact_copy, _make_easy_task_recompressed, _ma
 MEDIUM_GENERATORS = [_make_medium_task_filtered, _make_medium_task_watermarked, _make_medium_task_metadata_mismatch]
 HARD_GENERATORS = [_make_hard_task_ambiguous, _make_hard_task_adversarial_decoy, _make_hard_task_ai_generated]
 
+def grade_easy_task(action: str, ground_truth: str) -> float:
+    if action == ground_truth: return 1.0
+    if action in ("FLAG_HARD", "FLAG_SOFT") and ground_truth in ("FLAG_HARD", "FLAG_SOFT"): return 0.5
+    if action in ("FLAG_HARD", "FLAG_SOFT") and ground_truth == "CLEAR": return 0.2
+    return 0.0
+
+def grade_medium_task(action: str, ground_truth: str) -> float:
+    return grade_easy_task(action, ground_truth)
+
+def grade_hard_task(action: str, ground_truth: str) -> float:
+    return grade_easy_task(action, ground_truth)
+
 class DAPSEnvironment:
     def __init__(self):
         self._state = None
