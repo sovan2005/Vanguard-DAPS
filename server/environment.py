@@ -4,7 +4,7 @@ from typing import Optional
 from pathlib import Path
 from PIL import Image
 
-from models import (
+from .models import (
     ActionType,
     DAPSAction,
     DAPSObservation,
@@ -16,9 +16,9 @@ from models import (
     ThreatLevel,
 )
 
-from core.detector import detector_engine
+from .core.detector import detector_engine
 
-QUERIES_DIR = Path("data/queries")
+QUERIES_DIR = Path(__file__).parent / "data" / "queries"
 
 # ─────────────────────────────────────────────────────────────
 # THREAT LEVEL ASSESSMENT
@@ -151,7 +151,7 @@ def _make_hard_task_ambiguous(task_id: str) -> tuple[DAPSObservation, ActionType
         ground_truth = ActionType.CLEAR
 
     obs = DAPSObservation(
-        sscd_score=round(sscd,3), phash_distance=int(phash), modification_type=ModificationType.COMPOSITE,
+        sscd_score=round(sscd,3), phash_distance=min(int(phash), 256), modification_type=ModificationType.COMPOSITE,
         modification_confidence=0.5, source_domain="unknown", file_size_ratio=2.0,
         upload_delay_hours=10.0, metadata_consistency=0.3, timestamp_anomaly=True,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -178,7 +178,7 @@ def _make_hard_task_ai_generated(task_id: str) -> tuple[DAPSObservation, ActionT
     phash += 12
     source_rep = 0.3
     obs = DAPSObservation(
-        sscd_score=round(sscd,3), phash_distance=int(phash), modification_type=ModificationType.AI_GENERATED,
+        sscd_score=round(sscd,3), phash_distance=min(int(phash), 256), modification_type=ModificationType.AI_GENERATED,
         modification_confidence=0.7, source_domain="ai_art_platform", file_size_ratio=1.2,
         upload_delay_hours=48.0, metadata_consistency=0.3, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,

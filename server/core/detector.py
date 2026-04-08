@@ -2,11 +2,11 @@ import numpy as np
 import time
 import logging
 from PIL import Image
-from core.config import cfg
-from core.embedder import embedder
-from core.indexer import faiss_index
-from db.database import get_session
-from db.models import Asset
+from .config import cfg
+from .embedder import embedder
+from .indexer import faiss_index
+from ..db.database import get_session
+from ..db.models import Asset
 
 logger = logging.getLogger(__name__)
 

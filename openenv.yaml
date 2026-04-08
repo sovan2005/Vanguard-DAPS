@@ -22,7 +22,7 @@ runtime:
   python_version: "3.11"
 
 app:
-  module: app
+  module: server.app
   object: app
   port: 7860
 

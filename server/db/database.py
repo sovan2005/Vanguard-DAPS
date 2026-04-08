@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from core.config import cfg
-from db.models import Base
+from ..core.config import cfg
+from .models import Base
 
 engine = create_engine(cfg.DB_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

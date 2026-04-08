@@ -25,7 +25,7 @@ class Config:
     HEAVY_THRESH    = 0.60
     
     # DB
-    DB_URL = "sqlite:///./daps.db"
+    DB_URL = f"sqlite:///{BASE_DIR / 'daps.db'}"
     
     # API
     MAX_FILE_SIZE_MB = 10

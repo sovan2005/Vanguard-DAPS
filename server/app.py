@@ -34,7 +34,7 @@ import uuid
 from PIL import Image
 from pathlib import Path
 
-from models import (
+from .models import (
     DAPSAction,
     DAPSObservation,
     DAPSState,
@@ -44,12 +44,12 @@ from models import (
 )
 import hashlib
 import numpy as np
-from core.embedder import embedder
-from core.indexer import faiss_index
-from db.database import get_session
-from db.models import Asset
-from environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
-from core.detector import detector_engine
+from .core.embedder import embedder
+from .core.indexer import faiss_index
+from .db.database import get_session
+from .db.models import Asset
+from .environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
+from .core.detector import detector_engine
 
 
 # ─────────────────────────────────────────────
@@ -101,12 +101,12 @@ async def startup_event():
     # 1. Check if model exists, if not run setup
     if not model_path.exists() or model_path.stat().st_size < 80000000:
         print("SSCD Model missing or incomplete. Running setup script...")
-        subprocess.run([sys.executable, "scripts/setup_ml_environment.py"], check=True)
+        subprocess.run([sys.executable, str(base / "scripts" / "setup_ml_environment.py")], check=True)
 
     # 2. Check if dataset exists, if not run build
     if not db_path.exists() or db_path.stat().st_size < 1000:
         print("DAPS Database missing or empty. Running dataset build...")
-        subprocess.run([sys.executable, "scripts/build_test_dataset.py"], check=True)
+        subprocess.run([sys.executable, str(base / "scripts" / "build_test_dataset.py")], check=True)
 
     print("DAPSEnv is fully initialized and ready.")
 

@@ -4,7 +4,7 @@ import imagehash
 from PIL import Image
 from torchvision import transforms
 from pathlib import Path
-from core.config import cfg
+from .config import cfg
 import logging
 
 logger = logging.getLogger(__name__)

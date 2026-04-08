@@ -3,7 +3,7 @@ import numpy as np
 import json
 import logging
 from pathlib import Path
-from core.config import cfg
+from .config import cfg
 
 logger = logging.getLogger(__name__)
 
