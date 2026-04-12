@@ -16,9 +16,21 @@ except ImportError:
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 IMAGE_NAME = os.getenv("IMAGE_NAME")
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_KEY = os.getenv("API_KEY") or HF_TOKEN or "placeholder"
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+# CRITICAL: Use the platform-injected proxy URL and key directly.
+# The hackathon validator checks that ALL LLM calls go through their LiteLLM proxy.
+# Do NOT fallback to other URLs or keys — that bypasses the proxy.
+API_BASE_URL = os.environ.get("API_BASE_URL", "")
+API_KEY = os.environ.get("API_KEY", "")
+
+# Fallback only if the platform vars are completely missing (local dev)
+if not API_BASE_URL:
+    API_BASE_URL = "https://router.huggingface.co/v1"
+    print("[WARN] API_BASE_URL not set, using default. This will fail the LLM proxy check.")
+if not API_KEY:
+    API_KEY = HF_TOKEN or "placeholder"
+    print("[WARN] API_KEY not set, using fallback. This will fail the LLM proxy check.")
+
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 ENV_BASE_URL = os.environ.get("ENV_BASE_URL", "http://localhost:7860")
 
@@ -74,13 +86,15 @@ def wait_for_env(url: str, timeout: int = 600):
 # LLM client
 # ─────────────────────────────────────────────
 
-if hasattr(sys.modules[__name__], 'has_openai') and has_openai:
+if has_openai:
     llm_client = OpenAI(
-        api_key=API_KEY or "placeholder",
+        api_key=API_KEY,
         base_url=API_BASE_URL,
     )
+    print(f"[DEBUG] OpenAI client initialized: base_url={API_BASE_URL}")
 else:
     llm_client = None
+    print("[WARN] openai package not available, LLM calls will be skipped.")
 
 
 # ─────────────────────────────────────────────
