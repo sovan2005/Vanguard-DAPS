@@ -16,7 +16,7 @@ except ImportError:
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 IMAGE_NAME = os.getenv("IMAGE_NAME")
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_KEY = HF_TOKEN or os.getenv("API_KEY")
+API_KEY = os.getenv("API_KEY") or HF_TOKEN or "placeholder"
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
@@ -211,11 +211,8 @@ def run_episode(episode_num: int, start_step: int) -> tuple[dict, list]:
         step_count += 1
         global_step = start_step + step_count
         
-        # Select action
-        if API_BASE_URL and "router.huggingface.co" in API_BASE_URL:
-            action_type, confidence, reason = llm_decision(obs, memory)
-        else:
-            action_type, confidence, reason = rule_based_decision(obs, memory)
+        # Select action via LLM (which falls back to rules if it fails)
+        action_type, confidence, reason = llm_decision(obs, memory)
 
         # Execute
         result = env_step(action_type, confidence, reason)
