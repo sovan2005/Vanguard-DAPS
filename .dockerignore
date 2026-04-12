@@ -10,9 +10,6 @@ venv/
 env/
 
 # Locally downloaded large files (Docker will fetch its own during build)
-models/sscd_disc_mixup.torchscript.pt
-data/
-db/daps.db
 
 # IDEs
 .idea/

@@ -8,14 +8,14 @@ import uuid
 import hashlib
 
 # Fix relative imports
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 try:
-    from core.embedder import embedder
-    from core.indexer import faiss_index
-    from db.models import Asset
-    from db.database import get_session, init_db
+    from server.core.embedder import embedder
+    from server.core.indexer import faiss_index
+    from server.db.models import Asset
+    from server.db.database import get_session, init_db
 except Exception as e:
     print(f"CRITICAL ERROR: Failed to import internal modules: {e}")
     traceback.print_exc()

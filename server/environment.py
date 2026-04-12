@@ -4,7 +4,7 @@ from typing import Optional
 from pathlib import Path
 from PIL import Image
 
-from .models import (
+from server.models import (
     ActionType,
     DAPSAction,
     DAPSObservation,
@@ -16,7 +16,7 @@ from .models import (
     ThreatLevel,
 )
 
-from .core.detector import detector_engine
+from server.core.detector import detector_engine
 
 QUERIES_DIR = Path(__file__).parent / "data" / "queries"
 
@@ -63,7 +63,7 @@ def _make_easy_task_exact_copy(task_id: str) -> tuple[DAPSObservation, ActionTyp
     sscd, phash = run_ml_detector("_T1_exact")
     source_rep = round(random.uniform(0.1, 0.4), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.CROP,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.CROP,
         modification_confidence=0.9, source_domain="social_media", file_size_ratio=0.95,
         upload_delay_hours=5.0, metadata_consistency=0.4, timestamp_anomaly=True,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -75,7 +75,7 @@ def _make_easy_task_recompressed(task_id: str) -> tuple[DAPSObservation, ActionT
     sscd, phash = run_ml_detector("_T2_recompress")
     source_rep = round(random.uniform(0.2, 0.5), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.RECOMPRESSION,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.RECOMPRESSION,
         modification_confidence=0.9, source_domain="messaging_app", file_size_ratio=0.7,
         upload_delay_hours=2.0, metadata_consistency=0.5, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -87,7 +87,7 @@ def _make_easy_task_cropped(task_id: str) -> tuple[DAPSObservation, ActionType]:
     sscd, phash = run_ml_detector("_T3_crop")
     source_rep = round(random.uniform(0.15, 0.45), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.CROP,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.CROP,
         modification_confidence=0.85, source_domain="blog", file_size_ratio=0.8,
         upload_delay_hours=12.0, metadata_consistency=0.3, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -99,7 +99,7 @@ def _make_medium_task_filtered(task_id: str) -> tuple[DAPSObservation, ActionTyp
     sscd, phash = run_ml_detector("_T5_color")
     source_rep = round(random.uniform(0.3, 0.6), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.FILTER,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.FILTER,
         modification_confidence=0.7, source_domain="news_site", file_size_ratio=1.0,
         upload_delay_hours=20.0, metadata_consistency=0.5, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -113,7 +113,7 @@ def _make_medium_task_watermarked(task_id: str) -> tuple[DAPSObservation, Action
     phash += 5                 # augment
     source_rep = round(random.uniform(0.3, 0.7), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.WATERMARK,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.WATERMARK,
         modification_confidence=0.7, source_domain="ecommerce", file_size_ratio=1.1,
         upload_delay_hours=50.0, metadata_consistency=0.6, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -127,7 +127,7 @@ def _make_medium_task_metadata_mismatch(task_id: str) -> tuple[DAPSObservation, 
     phash += 2
     source_rep = round(random.uniform(0.1, 0.3), 2)
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.FILTER,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.FILTER,
         modification_confidence=0.6, source_domain="unknown_aggregator", file_size_ratio=1.2,
         upload_delay_hours=1.0, metadata_consistency=0.2, timestamp_anomaly=True,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,
@@ -164,7 +164,7 @@ def _make_hard_task_adversarial_decoy(task_id: str) -> tuple[DAPSObservation, Ac
     sscd, phash = run_ml_detector("_T2_recompress")
     source_rep = 0.95
     obs = DAPSObservation(
-        sscd_score=sscd, phash_distance=phash, modification_type=ModificationType.NONE,
+        sscd_score=sscd, phash_distance=min(int(phash), 256), modification_type=ModificationType.NONE,
         modification_confidence=0.3, source_domain="official_channel", file_size_ratio=1.0,
         upload_delay_hours=-100.0, metadata_consistency=0.95, timestamp_anomaly=False,
         source_reputation=source_rep, task_id=task_id, step_in_episode=0,

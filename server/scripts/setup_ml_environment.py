@@ -6,7 +6,7 @@ import traceback
 from PIL import Image, ImageDraw
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 MODELS_DIR = BASE_DIR / "models"
 ORIGINALS_DIR = BASE_DIR / "data" / "originals"
 

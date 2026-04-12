@@ -20,8 +20,7 @@ import os
 import time
 import json
 
-# Ensure local imports work in the container
-sys.path.insert(0, os.path.dirname(__file__))
+# Removed sys.path hack for absolute imports
 
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,7 +33,7 @@ import uuid
 from PIL import Image
 from pathlib import Path
 
-from .models import (
+from server.models import (
     DAPSAction,
     DAPSObservation,
     DAPSState,
@@ -44,12 +43,12 @@ from .models import (
 )
 import hashlib
 import numpy as np
-from .core.embedder import embedder
-from .core.indexer import faiss_index
-from .db.database import get_session
-from .db.models import Asset
-from .environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
-from .core.detector import detector_engine
+from server.core.embedder import embedder
+from server.core.indexer import faiss_index
+from server.db.database import get_session
+from server.db.models import Asset
+from server.environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
+from server.core.detector import detector_engine
 
 
 # ─────────────────────────────────────────────
@@ -95,19 +94,23 @@ _start_time = time.time()
 async def startup_event():
     """Ensure ML models and dataset are ready before first request."""
     print("DAPSEnv starting up...")
-    base = Path(__file__).parent
-    model_path = base / "models" / "sscd_disc_mixup.torchscript.pt"
-    db_path = base / "daps.db"
+    from server.core.config import cfg
+    scripts_dir = Path(__file__).parent / "scripts"
+    model_path = Path(cfg.SSCD_MODEL_PATH)
+    # Parse db path from sqlite:///... format
+    db_path = Path(cfg.DB_URL.replace("sqlite:///", ""))
 
     # 1. Check if model exists, if not run setup
     if not model_path.exists() or model_path.stat().st_size < 80000000:
         print("SSCD Model missing or incomplete. Running setup script...")
-        subprocess.run([sys.executable, str(base / "scripts" / "setup_ml_environment.py")], check=True)
+        subprocess.run([sys.executable, str(scripts_dir / "setup_ml_environment.py")], check=True)
 
     # 2. Check if dataset exists, if not run build
     if not db_path.exists() or db_path.stat().st_size < 1000:
         print("DAPS Database missing or empty. Running dataset build...")
-        subprocess.run([sys.executable, str(base / "scripts" / "build_test_dataset.py")], check=True)
+        subprocess.run([sys.executable, str(scripts_dir / "build_test_dataset.py")], check=True)
+        # Reload the FAISS index and clear engine cache since we built them in another process
+        faiss_index._load_or_create()
 
     print("DAPSEnv is fully initialized and ready.")
 
@@ -207,10 +210,11 @@ from fastapi.responses import HTMLResponse
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     try:
-        with open(os.path.join(os.path.dirname(__file__), "static", "index.html"), "r") as f:
+        index_path = _DIR / "static" / "index.html"
+        with open(index_path, "r") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h1>Welcome to DAPSEnv</h1><p>index.html not found.</p>"
+        return f"<h1>Welcome to DAPSEnv</h1><p>index.html not found at {index_path}.</p>"
 
 @app.post("/reset", response_model=ResetResponse)
 def reset(request: ResetRequest = ResetRequest()):
@@ -716,7 +720,15 @@ async def analyze_pair(reference: UploadFile = File(...), query: UploadFile = Fi
         raise HTTPException(status_code=500, detail=f"Lab Analysis Failed: {str(e)}")
 
 
+def main():
+    """Entry point for the openenv server CLI."""
+    try:
+        from openenv.core.cli import server
+        server()
+    except ImportError:
+        import uvicorn
+        port = int(os.environ.get("PORT", 7860))
+        uvicorn.run("server.app:app", host="0.0.0.0", port=port, log_level="info")
+
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+    main()
