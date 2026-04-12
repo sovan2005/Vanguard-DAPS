@@ -10,31 +10,29 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "openenv-core>=0.2.0",
-        "fastapi",
-            "uvicorn[standard]",
-                "pydantic",
-                    "python-multipart",
-                        "openai",
-                            "requests",
-                                "torch",
-                                    "torchvision",
-                                        "faiss-cpu",
-                                            "imagehash",
-                                                "Pillow",
-                                                    "sqlalchemy",
-                                                        "numpy",
-                                                            "scipy",
-                                                            ]
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "python-multipart",
+    "openai",
+    "requests",
+    "torch",
+    "torchvision",
+    "faiss-cpu",
+    "imagehash",
+    "Pillow",
+    "sqlalchemy",
+    "numpy",
+    "scipy",
+]
 
-                                                            [project.scripts]
-                                                            server = "server.app:main"
-                                                            openenv-server = "openenv.core.cli:server"
+[project.scripts]
+server = "server.app:main"
+openenv-server = "openenv.core.cli:server"
 
-                                                            [project.entry-points."openenv.environments"]
-                                                            daps-env = "server.app:app"
+[project.entry-points."openenv.environments"]
+daps-env = "server.app:app"
 
-                                                            [tool.setuptools]
-                                                            packages = ["server", "server.db", "server.core", "server.scripts"]
-                                                            py-modules = ["inference"]
-
-                                                            
+[tool.setuptools]
+packages = ["server", "server.db", "server.core", "server.scripts", "tasks", "tasks.easy_exact_copy", "tasks.easy_recompressed", "tasks.easy_cropped", "tasks.medium_filtered", "tasks.medium_watermarked", "tasks.medium_metadata_mismatch", "tasks.hard_ambiguous", "tasks.hard_adversarial_decoy", "tasks.hard_ai_generated"]
+py-modules = ["inference"]
