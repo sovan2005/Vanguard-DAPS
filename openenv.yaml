@@ -11,7 +11,7 @@ description: >
   adversarial decoys and AI-generated lookalike detection.
   Confidence-weighted reward shaping teaches calibrated decision-making.
 
-version: "2.0.0"
+version: "2.2.1"
 author: "Sovan"
 license: "MIT"
 
