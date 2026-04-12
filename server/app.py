@@ -378,7 +378,7 @@ def list_tasks():
             ),
             "difficulty": "easy",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_easy_task",
+            "grader": "tasks.easy_exact_copy.grader:grade",
         },
         {
             "task_id": "easy_recompressed",
@@ -389,7 +389,7 @@ def list_tasks():
             ),
             "difficulty": "easy",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_easy_task",
+            "grader": "tasks.easy_recompressed.grader:grade",
         },
         {
             "task_id": "easy_cropped",
@@ -400,7 +400,7 @@ def list_tasks():
             ),
             "difficulty": "easy",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_easy_task",
+            "grader": "tasks.easy_cropped.grader:grade",
         },
         {
             "task_id": "medium_filtered",
@@ -411,7 +411,7 @@ def list_tasks():
             ),
             "difficulty": "medium",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_medium_task",
+            "grader": "tasks.medium_filtered.grader:grade",
         },
         {
             "task_id": "medium_watermarked",
@@ -422,7 +422,7 @@ def list_tasks():
             ),
             "difficulty": "medium",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_medium_task",
+            "grader": "tasks.medium_watermarked.grader:grade",
         },
         {
             "task_id": "medium_metadata_mismatch",
@@ -434,7 +434,7 @@ def list_tasks():
             ),
             "difficulty": "medium",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_medium_task",
+            "grader": "tasks.medium_metadata_mismatch.grader:grade",
         },
         {
             "task_id": "hard_ambiguous",
@@ -445,7 +445,7 @@ def list_tasks():
             ),
             "difficulty": "hard",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_hard_task",
+            "grader": "tasks.hard_ambiguous.grader:grade",
         },
         {
             "task_id": "hard_adversarial_decoy",
@@ -457,7 +457,7 @@ def list_tasks():
             ),
             "difficulty": "hard",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_hard_task",
+            "grader": "tasks.hard_adversarial_decoy.grader:grade",
         },
         {
             "task_id": "hard_ai_generated",
@@ -469,7 +469,7 @@ def list_tasks():
             ),
             "difficulty": "hard",
             "reward_range": [0.0, 1.0],
-            "grader": "grade_hard_task",
+            "grader": "tasks.hard_ai_generated.grader:grade",
         },
     ])
 
