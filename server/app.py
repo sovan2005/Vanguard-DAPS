@@ -369,7 +369,7 @@ def list_tasks():
     """
     return TasksResponse(tasks=[
         {
-            "task_id": "easy_exact_copy",
+            "id": "easy_exact_copy",
             "name": "Exact Copy Detection",
             "description": (
                 "Near-exact copy with minimal modification. "
@@ -381,7 +381,7 @@ def list_tasks():
             "grader": "tasks.easy_exact_copy.grader:grade",
         },
         {
-            "task_id": "easy_recompressed",
+            "id": "easy_recompressed",
             "name": "Recompressed Copy Detection",
             "description": (
                 "Same content re-encoded with quality loss (screenshot, re-upload). "
@@ -392,7 +392,7 @@ def list_tasks():
             "grader": "tasks.easy_recompressed.grader:grade",
         },
         {
-            "task_id": "easy_cropped",
+            "id": "easy_cropped",
             "name": "Cropped Copy Detection",
             "description": (
                 "Cropped version of original. SSCD > 0.88, pHash < 8. "
@@ -403,7 +403,7 @@ def list_tasks():
             "grader": "tasks.easy_cropped.grader:grade",
         },
         {
-            "task_id": "medium_filtered",
+            "id": "medium_filtered",
             "name": "Filtered Asset Detection",
             "description": (
                 "Color/style filter applied. SSCD 0.65-0.85, pHash 8-20. "
@@ -414,7 +414,7 @@ def list_tasks():
             "grader": "tasks.medium_filtered.grader:grade",
         },
         {
-            "task_id": "medium_watermarked",
+            "id": "medium_watermarked",
             "name": "Watermark Detection",
             "description": (
                 "Watermark added or removed. Perceptual hash shifts but "
@@ -425,7 +425,7 @@ def list_tasks():
             "grader": "tasks.medium_watermarked.grader:grade",
         },
         {
-            "task_id": "medium_metadata_mismatch",
+            "id": "medium_metadata_mismatch",
             "name": "Metadata Anomaly Detection",
             "description": (
                 "Color-graded asset with suspicious metadata. Low consistency, "
@@ -437,7 +437,7 @@ def list_tasks():
             "grader": "tasks.medium_metadata_mismatch.grader:grade",
         },
         {
-            "task_id": "hard_ambiguous",
+            "id": "hard_ambiguous",
             "name": "Ambiguous Asset Classification",
             "description": (
                 "Conflicting signals. Could be CLEAR or FLAG_HARD. "
@@ -448,7 +448,7 @@ def list_tasks():
             "grader": "tasks.hard_ambiguous.grader:grade",
         },
         {
-            "task_id": "hard_adversarial_decoy",
+            "id": "hard_adversarial_decoy",
             "name": "Adversarial Decoy (Agent-Under-Attack)",
             "description": (
                 "Signals LOOK like infringement but asset is original. "
@@ -460,7 +460,7 @@ def list_tasks():
             "grader": "tasks.hard_adversarial_decoy.grader:grade",
         },
         {
-            "task_id": "hard_ai_generated",
+            "id": "hard_ai_generated",
             "name": "AI-Generated Lookalike Detection",
             "description": (
                 "AI-generated content that looks similar to original. "
@@ -496,7 +496,7 @@ def info():
             "modification_confidence", "source_domain", "file_size_ratio",
             "upload_delay_hours", "metadata_consistency", "timestamp_anomaly",
             "source_reputation", "gemini_verdict", "gemini_similarity",
-            "task_id", "step_in_episode", "difficulty", "threat_level",
+            "id", "step_in_episode", "difficulty", "threat_level",
         ],
         reward_range=[-0.1, 1.0],
         difficulty_levels=["easy", "medium", "hard"],

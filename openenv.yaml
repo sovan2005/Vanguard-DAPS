@@ -58,57 +58,57 @@ endpoints:
 
 tasks:
   # ── Easy tasks ──
-  - task_id: easy_exact_copy
+  - id: easy_exact_copy
     name: "Exact Copy Detection"
     description: "Near-exact copy with minimal modification. SSCD > 0.92, pHash < 5. Expected action: FLAG_HARD."
     difficulty: easy
     reward_range: [0.0, 1.0]
     grader: "tasks.easy_exact_copy.grader:grade"
-  - task_id: easy_recompressed
+  - id: easy_recompressed
     name: "Recompressed Copy Detection"
     description: "Same content re-encoded with quality loss. SSCD > 0.90, pHash < 6. Expected action: FLAG_HARD."
     difficulty: easy
     reward_range: [0.0, 1.0]
     grader: "tasks.easy_recompressed.grader:grade"
-  - task_id: easy_cropped
+  - id: easy_cropped
     name: "Cropped Copy Detection"
     description: "Cropped version of original. SSCD > 0.88, pHash < 8. Expected action: FLAG_HARD."
     difficulty: easy
     reward_range: [0.0, 1.0]
     grader: "tasks.easy_cropped.grader:grade"
   # ── Medium tasks ──
-  - task_id: medium_filtered
+  - id: medium_filtered
     name: "Filtered Asset Detection"
     description: "Color/style filter applied. SSCD 0.65-0.85, pHash 8-20. Expected action: FLAG_SOFT."
     difficulty: medium
     reward_range: [0.0, 1.0]
     grader: "tasks.medium_filtered.grader:grade"
-  - task_id: medium_watermarked
+  - id: medium_watermarked
     name: "Watermark Detection"
     description: "Watermark added or removed. Perceptual hash shifts but deep embedding recognizable. Expected action: FLAG_SOFT."
     difficulty: medium
     reward_range: [0.0, 1.0]
     grader: "tasks.medium_watermarked.grader:grade"
-  - task_id: medium_metadata_mismatch
+  - id: medium_metadata_mismatch
     name: "Metadata Anomaly Detection"
     description: "Color-graded asset with suspicious metadata. Low consistency, suspicious source. Expected action: FLAG_SOFT."
     difficulty: medium
     reward_range: [0.0, 1.0]
     grader: "tasks.medium_metadata_mismatch.grader:grade"
   # ── Hard tasks ──
-  - task_id: hard_ambiguous
+  - id: hard_ambiguous
     name: "Ambiguous Asset Classification"
     description: "Conflicting signals. Could be CLEAR or FLAG_HARD. Optimal: call REQUEST_GEMINI first, then decide."
     difficulty: hard
     reward_range: [0.0, 1.0]
     grader: "tasks.hard_ambiguous.grader:grade"
-  - task_id: hard_adversarial_decoy
+  - id: hard_adversarial_decoy
     name: "Adversarial Decoy (Agent-Under-Attack)"
     description: "Signals LOOK like infringement but asset is original. Tests false positive control. Expected action: CLEAR."
     difficulty: hard
     reward_range: [0.0, 1.0]
     grader: "tasks.hard_adversarial_decoy.grader:grade"
-  - task_id: hard_ai_generated
+  - id: hard_ai_generated
     name: "AI-Generated Lookalike Detection"
     description: "AI-generated content similar to original. SSCD picks up style similarity, pHash diverges. Expected action: FLAG_SOFT."
     difficulty: hard
