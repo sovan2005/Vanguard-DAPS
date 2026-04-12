@@ -60,42 +60,60 @@ tasks:
   # ── Easy tasks ──
   - id: easy_exact_copy
     name: "Exact Copy Detection"
+    description: "Near-exact copy with minimal modification. SSCD > 0.92, pHash < 5. Expected action: FLAG_HARD."
     difficulty: easy
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_easy_task"
   - id: easy_recompressed
     name: "Recompressed Copy Detection"
+    description: "Same content re-encoded with quality loss. SSCD > 0.90, pHash < 6. Expected action: FLAG_HARD."
     difficulty: easy
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_easy_task"
   - id: easy_cropped
     name: "Cropped Copy Detection"
+    description: "Cropped version of original. SSCD > 0.88, pHash < 8. Expected action: FLAG_HARD."
     difficulty: easy
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_easy_task"
   # ── Medium tasks ──
   - id: medium_filtered
     name: "Filtered Asset Detection"
+    description: "Color/style filter applied. SSCD 0.65-0.85, pHash 8-20. Expected action: FLAG_SOFT."
     difficulty: medium
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_medium_task"
   - id: medium_watermarked
     name: "Watermark Detection"
+    description: "Watermark added or removed. Perceptual hash shifts but deep embedding recognizable. Expected action: FLAG_SOFT."
     difficulty: medium
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_medium_task"
   - id: medium_metadata_mismatch
     name: "Metadata Anomaly Detection"
+    description: "Color-graded asset with suspicious metadata. Low consistency, suspicious source. Expected action: FLAG_SOFT."
     difficulty: medium
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_medium_task"
   # ── Hard tasks ──
   - id: hard_ambiguous
     name: "Ambiguous Asset Classification"
+    description: "Conflicting signals. Could be CLEAR or FLAG_HARD. Optimal: call REQUEST_GEMINI first, then decide."
     difficulty: hard
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_hard_task"
   - id: hard_adversarial_decoy
     name: "Adversarial Decoy (Agent-Under-Attack)"
+    description: "Signals LOOK like infringement but asset is original. Tests false positive control. Expected action: CLEAR."
     difficulty: hard
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_hard_task"
   - id: hard_ai_generated
     name: "AI-Generated Lookalike Detection"
+    description: "AI-generated content similar to original. SSCD picks up style similarity, pHash diverges. Expected action: FLAG_SOFT."
     difficulty: hard
     score_range: [0.0, 1.0]
+    grader: "server.environment:grade_hard_task"
 
 action_space:
   type: categorical
