@@ -277,7 +277,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except BaseException as e:
+    except Exception as e:
         print(f"[FATAL] Critical Unhandled Exception at top level: {e}")
         print(f"[END] success=false steps=0 score=0.000 rewards=")
         sys.exit(0)
