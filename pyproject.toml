@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "daps-env"
+name = "openenv-daps-env"
 version = "2.0.0"
 description = "Vanguard Digital Asset Protection System (DAPS) for Meta x PyTorch OpenEnv Hackathon"
 readme = "README.md"
@@ -34,5 +34,9 @@ openenv-server = "openenv.core.cli:server"
 daps-env = "server.app:app"
 
 [tool.setuptools]
-packages = ["server", "server.db", "server.core", "server.scripts", "tasks", "tasks.easy_exact_copy", "tasks.easy_recompressed", "tasks.easy_cropped", "tasks.medium_filtered", "tasks.medium_watermarked", "tasks.medium_metadata_mismatch", "tasks.hard_ambiguous", "tasks.hard_adversarial_decoy", "tasks.hard_ai_generated"]
+[tool.setuptools]
+packages = ["daps_env", "server", "server.db", "server.core", "server.scripts", "tasks", "tasks.easy_exact_copy", "tasks.easy_recompressed", "tasks.easy_cropped", "tasks.medium_filtered", "tasks.medium_watermarked", "tasks.medium_metadata_mismatch", "tasks.hard_ambiguous", "tasks.hard_adversarial_decoy", "tasks.hard_ai_generated"]
 py-modules = ["inference"]
+
+[tool.setuptools.package-data]
+"*" = ["openenv.yaml", "README.md", "requirements.txt"]
