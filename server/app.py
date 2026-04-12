@@ -146,8 +146,16 @@ class HealthResponse(BaseModel):
     version: str
 
 
+class TaskInfo(BaseModel):
+    id: str
+    name: str
+    description: str
+    difficulty: str
+    reward_range: list[float]
+    grader: str  # required field to satisfy strict validation
+
 class TasksResponse(BaseModel):
-    tasks: list[dict]
+    tasks: list[TaskInfo]
 
 
 class InfoResponse(BaseModel):
