@@ -1238,8 +1238,16 @@
                 });
                 
                 if (!res.ok) {
-                    const errData = await res.json();
-                    throw new Error(errData.detail || "Server Analysis Failed");
+                    const text = await res.text();
+                    let errMsg = "Server Analysis Failed";
+                    try {
+                        const errData = JSON.parse(text);
+                        errMsg = errData.detail || errMsg;
+                        if(errData.trace) console.error("Server Trace:", errData.trace);
+                    } catch(e) {
+                        errMsg = text.substring(0, 100) || errMsg;
+                    }
+                    throw new Error(errMsg);
                 }
 
                 const data = await res.json();
@@ -1341,9 +1349,20 @@
                     method: 'POST',
                     body: formData
                 });
-                const data = await res.json();
                 
-                if(data && data.observation) {
+                if(!res.ok) {
+                    const text = await res.text();
+                    let errMsg = "Upload Failed";
+                    try {
+                        const errData = JSON.parse(text);
+                        errMsg = errData.detail || errMsg;
+                    } catch(e) {
+                        errMsg = text.substring(0, 100) || errMsg;
+                    }
+                    throw new Error(errMsg);
+                }
+
+                const data = await res.json();
                     renderObservation(data.observation);
                     
                     // Update Forensic Report

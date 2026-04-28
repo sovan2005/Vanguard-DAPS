@@ -49,6 +49,9 @@ from server.db.database import get_session
 from server.db.models import Asset
 from server.environment import DAPSEnvironment, assess_threat_level, grade_easy_task, grade_medium_task, grade_hard_task
 from server.core.detector import detector_engine
+from server.db.database import init_db
+from fastapi.responses import JSONResponse
+import traceback
 
 
 # ─────────────────────────────────────────────
@@ -77,6 +80,19 @@ app.add_middleware(
 from fastapi.staticfiles import StaticFiles
 _DIR = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=str(_DIR / "static")), name="static")
+
+# GLOBAL ERROR HANDLER (CRITICAL FOR DEBUGGING)
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    logger_name = "server.app"
+    import logging
+    logger = logging.getLogger(logger_name)
+    logger.error(f"Global Exception: {str(exc)}")
+    logger.error(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"System Error: {str(exc)}", "trace": traceback.format_exc()}
+    )
 
 # Single environment instance (concurrent sessions disabled for hackathon)
 env = DAPSEnvironment()
@@ -111,6 +127,10 @@ async def startup_event():
         subprocess.run([sys.executable, str(scripts_dir / "build_test_dataset.py")], check=True)
         # Reload the FAISS index and clear engine cache since we built them in another process
         faiss_index._load_or_create()
+
+    # 3. Always ensure tables exist (even if dataset build was skipped)
+    print("Ensuring database schema...")
+    init_db()
 
     print("DAPSEnv is fully initialized and ready.")
 
