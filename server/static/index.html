@@ -739,33 +739,39 @@
             <!-- LAB SIDEBAR (NEW) -->
             <div class="view-item view-lab active">
                 <h2 style="margin-top: 10px;">Laboratory Controls</h2>
-                <div class="hud-card" style="border-color: var(--accent)">
-                    <div class="hud-label">Lab Status</div>
-                    <div class="hud-value" style="font-size: 1.4rem;">READY</div>
-                    <div class="hud-sub">Awaiting Pair Analysis</div>
-                </div>
-                <div class="hud-card" style="border-color: var(--safe); margin-top: 10px;">
-                    <div class="hud-label">Compliance Check</div>
-                    <div class="hud-sub">✓ JPG / PNG Support Only</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                    <div class="hud-card" style="border-color: var(--accent); padding: 15px;">
+                        <div class="hud-label" style="font-size: 0.6rem;">Lab Status</div>
+                        <div class="hud-value" style="font-size: 1.4rem;">READY</div>
+                        <div class="hud-sub" style="font-size: 0.7rem;">Awaiting Pair Analysis</div>
+                    </div>
+                    <div class="hud-card" style="border-color: var(--safe); padding: 15px;">
+                        <div class="hud-label" style="font-size: 0.6rem;">Compliance Check</div>
+                        <div class="hud-sub" style="font-size: 0.75rem;">✓ JPG / PNG Support Only</div>
+                    </div>
                 </div>
             </div>
 
             <!-- HUD SIDEBAR (GAME) -->
             <div class="view-item view-hud" style="display:none">
                 <h2 style="margin-top: 10px;">Episode Metrics</h2>
-                <div class="hud-card" style="border-color: var(--accent)">
-                    <div class="hud-label">Current Cycle</div>
-                    <div class="hud-value" id="disp-step" style="font-size: 1.8rem;">INIT_00</div>
-                    <div class="hud-sub" id="disp-task-id">Awaiting Task</div>
-                </div>
-                <div class="hud-card" style="border-color: var(--warning)">
-                    <div class="hud-label">Forensic Calibration</div>
-                    <div class="hud-value" id="disp-calibration" style="font-size: 1.2rem;">0.0%</div>
-                </div>
-                <div class="hud-card" style="border-color: var(--safe)">
-                    <div class="hud-label">Total Reward Yield</div>
-                    <div class="hud-value" id="disp-reward">0.000</div>
-                    <div class="hud-sub" id="disp-reward-diff">+0.000</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                    <div class="hud-card" style="border-color: var(--accent); padding: 15px;">
+                        <div class="hud-label" style="font-size: 0.6rem;">Current Cycle</div>
+                        <div class="hud-value" id="disp-step" style="font-size: 1.4rem;">INIT_00</div>
+                        <div class="hud-sub" id="disp-task-id" style="font-size: 0.7rem;">Awaiting Task</div>
+                    </div>
+                    <div class="hud-card" style="border-color: var(--warning); padding: 15px;">
+                        <div class="hud-label" style="font-size: 0.6rem;">Forensic Calibration</div>
+                        <div class="hud-value" id="disp-calibration" style="font-size: 1.2rem;">0.0%</div>
+                    </div>
+                    <div class="hud-card" style="border-color: var(--safe); padding: 15px; grid-column: span 2;">
+                        <div class="hud-label" style="font-size: 0.6rem;">Total Reward Yield</div>
+                        <div style="display: flex; align-items: baseline; gap: 10px;">
+                            <div class="hud-value" id="disp-reward" style="font-size: 1.6rem;">0.000</div>
+                            <div class="hud-sub" id="disp-reward-diff" style="font-size: 0.9rem;">+0.000</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -826,7 +832,7 @@
                     </div>
                 </div>
 
-                <div id="lab-results" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 15px; border: 1px solid var(--border);">
+                <div id="lab-results" style="display: none; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; background: rgba(0,242,255,0.05); padding: 15px; border: 1px solid var(--accent); box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);">
                      <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Neural Similarity</div>
                         <div class="hud-value" id="lab-val-sscd" style="color: var(--accent); font-size: 1.4rem;">0.000</div>
@@ -834,12 +840,12 @@
                      </div>
                      <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Perceptual Match</div>
-                        <div class="hud-value" id="lab-val-phash" style="font-size: 1.4rem;">00</div>
+                        <div class="hud-value" id="lab-val-phash" style="font-size: 1.4rem;">0</div>
                         <div class="hud-sub">Structural Similarity</div>
                      </div>
                      <div class="intel-tile" style="min-height: 100px;">
                         <div class="hud-label">Metadata Check</div>
-                        <div class="hud-value" id="lab-val-meta" style="font-size: 1rem;">PASSED</div>
+                        <div class="hud-value" id="lab-val-meta" style="font-size: 1rem; color: var(--safe);">PASSED</div>
                         <div class="hud-sub">Consistency Audit</div>
                      </div>
                      <div class="intel-tile" style="min-height: 100px; border-color: var(--warning);">
@@ -884,14 +890,7 @@
                             <div class="hud-value" id="val-vision" style="font-size: 1.2rem;">--</div>
                             <div class="hud-sub">ESCALATED ANALYSIS</div>
                         </div>
-                        <div class="intel-tile" id="tile-upload">
-                            <div class="hud-label">Tactical Asset Check</div>
-                            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                                <div class="upload-icon">⇪</div>
-                                <div class="hud-sub">SECURE UPLOAD / SCAN</div>
-                                <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFileUpload(event)">
-                            </div>
-                        </div>
+
                     </div>
                 </div>
 
@@ -1223,6 +1222,7 @@
             }
 
             const btn = document.getElementById('btn-lab-analyze');
+            const originalText = btn.innerText;
             btn.innerText = "RUNNING FORENSIC FUSION...";
             btn.disabled = true;
 
@@ -1231,41 +1231,59 @@
             formData.append('query', query);
 
             try {
+                logEvent("Transmitting assets to Forensic Lab for comparison...");
                 const res = await fetch('/analyze/pair', {
                     method: 'POST',
                     body: formData
                 });
+                
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.detail || "Server Analysis Failed");
+                }
+
                 const data = await res.json();
                 
                 if (data && data.metrics) {
-                    console.log("Lab Results Received:", data.metrics);
-                    const resDiv = document.getElementById('lab-results');
-                    resDiv.style.display = 'grid'; // Ensure it's shown
-                    
                     const m = data.metrics;
+                    logEvent("Forensic Fusion Complete. Rendering neural metrics.", 'reward');
                     
-                    animateValue("lab-val-sscd", 0, m.neural_similarity, 1000, true);
-                    animateValue("lab-val-phash", 256, m.perceptual_distance, 1000, false);
+                    const resDiv = document.getElementById('lab-results');
+                    resDiv.style.display = 'grid'; // Force display
+                    
+                    // Reset values before animation
+                    document.getElementById('lab-val-sscd').innerText = "0.000";
+                    document.getElementById('lab-val-phash').innerText = "0";
+
+                    // Animate Neural Similarity
+                    animateValue("lab-val-sscd", 0, m.neural_similarity, 1200, true);
+                    
+                    // Animate Perceptual Match (Start from 64 as max for pHash distance)
+                    animateValue("lab-val-phash", 64, m.perceptual_distance, 1200, false);
+                    
                     document.getElementById('lab-val-meta').innerText = m.metadata_status;
                     document.getElementById('lab-val-risk').innerText = m.risk_assessment;
                     
-                    // Style by risk
-                    const riskColor = m.risk_assessment.includes('HIGH') || m.risk_assessment.includes('CRITICAL') ? 'var(--danger)' : 
-                                     (m.risk_assessment.includes('LOW') || m.risk_assessment.includes('BENIGN') ? 'var(--safe)' : 'var(--warning)');
+                    // Style by risk assessment
+                    const risk = m.risk_assessment.toUpperCase();
+                    let riskColor = 'var(--accent)';
+                    if (risk.includes('CRITICAL') || risk.includes('HIGH')) riskColor = 'var(--danger)';
+                    else if (risk.includes('MEDIUM')) riskColor = 'var(--warning)';
+                    else if (risk.includes('BENIGN') || risk.includes('LOW')) riskColor = 'var(--safe)';
+                    
                     document.getElementById('lab-val-risk').style.color = riskColor;
 
-                    logEvent("Pairwise Forensic Analysis Complete: Reference Indexed.", 'reward');
-                    
-                    // Scroll to results
-                    resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    const errorMsg = data.detail || "No metrics returned from backend.";
-                    logEvent(`Lab Analysis Error: ${errorMsg}`, 'danger');
+                    // Auto-scroll to results for better UX
+                    setTimeout(() => {
+                        resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
                 }
             } catch (err) {
-                logEvent(`Lab Failure: ${err.message}`, 'danger');
+                console.error("Forensic Lab Error:", err);
+                logEvent(`Lab Analysis Failed: ${err.message}`, 'danger');
+                alert(`Forensic Analysis Error: ${err.message}`);
             } finally {
-                btn.innerText = "EXECUTE FORENSIC FUSION";
+                btn.innerText = originalText;
                 btn.disabled = false;
             }
         }
